@@ -1,0 +1,34 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Launch SFML App",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/bin/main",
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "lldb",
+      "targetArchitecture": "arm64",
+      "preLaunchTask": "Build SFML Project",
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing for gdb/lldb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ]
+    },
+    {
+      "name": "C/C++ Runner: Debug Session",
+      "type": "lldb",
+      "request": "launch",
+      "args": [],
+      "cwd": "/Users/liam/Desktop/Game04-Team04-Kitsune/src",
+      "program": "/Users/liam/Desktop/Game04-Team04-Kitsune/src/build/Debug/outDebug"
+    }
+  ]
+}

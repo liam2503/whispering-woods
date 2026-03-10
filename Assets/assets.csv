@@ -1,0 +1,133 @@
+//FONTS	NAME	FILE PATH				
+Font	MFMG	Assets/Fonts/MFMG.ttf				
+Font	PS	Assets/Fonts/PS.ttf				
+Font	Harnold	Assets/Fonts/Harnold.otf				
+Font	Pixeloid	Assets/Fonts/Pixeloid.ttf				
+//						
+//						
+//TEXTURES	NAME	FILE PATH				
+Texture	SpawnPoint	Assets/Images/SpawnPoint.png				
+Texture	ChatBox	Assets/Images/ChatBox.png				
+Texture	LevelGoal	Assets/Images/LevelGoal.png				
+Texture	TexTileMud	Assets/Images/Brick_mud_64.png				
+Texture	TexTileGrass	Assets/Images/Brick_grass_64.png				
+Texture	TexGrassCenter	Assets/Images/grassCenter.png				
+Texture	TexGrassLeft	Assets/Images/grassLeft.png				
+Texture	TexGrassMid	Assets/Images/grassMid.png				
+Texture	TexGrassRight	Assets/Images/grassRight.png				
+Texture	TexBox	Assets/Images/box.png				
+Texture	TexSlime	Assets/Images/slime.png				
+Texture	TexMushroom	Assets/Images/mushroom.png				
+Texture	TexBat	Assets/Images/bat.png				
+Texture	TexDemon	Assets/Images/demon.png				
+Texture	TexManaFlower	Assets/Images/mana_flower.png				
+Texture	TexWhisper	Assets/Images/whisper.png				
+Texture	TexBoomerang	Assets/Images/boomerang.png				
+//						
+// Fox						
+Texture	TexFoxIdle	Assets/Images/Player/Fox_Stand.png				
+Texture	TexFoxRun	Assets/Images/Player/Fox_Walking.png				
+Texture	TexFoxJump	Assets/Images/Player/Fox_Jumping.png				
+Texture	TexFoxBite	Assets/Images/Player/Fox_Berry.png				
+Texture	TexFoxBurrow	Assets/Images/Player/Fox_Burrow.png				
+Texture	TexFoxSleeping	Assets/Images/Player/Fox_Sleeping.png				
+//						
+// Bat						
+Texture	TexBat	Assets/Images/bat.png				
+Texture	TexBatFly	Assets/Images/Animations/batFly.png				
+Texture	TexBatAttack	Assets/Images/Animations/batAttack.png				
+//						
+// Environment						
+Texture	TexBullet	Assets/Images/Player/Player_Bullet.png				
+Texture	TexExplosion	Assets/Images/Animations/explosion_96.png				
+Texture	TexBerriesLarge	Assets/Images/berries_large.png				
+Texture	TexBerriesSmall	Assets/Images/berries_small.png			     	
+Texture	TexSlimeWalk	Assets/Images/Animations/slimewalk.png				
+//						
+// Mushroom						
+Texture	TexMushroomWalk	Assets/Images/Animations/mushroom_walk.png				
+Texture	TexMushroomAttack	Assets/Images/Animations/mushroom_attack.png				
+//						
+// Mana Flower						
+Texture	TexManaSpent	Assets/Images/mana_flower_spent.png				
+Texture	TexMana	Assets/Images/mana.png				
+//						
+// Other Assets						
+Texture	TexMenuBG	Assets/Images/Menu/menu_bg.png				
+Texture	Dark_Cave	Assets/Images/BG/Dark_Cave.png				
+Texture	Silent_Woods	Assets/Images/BG/Silent_Woods.png				
+Texture	Mysterious_Forest	Assets/Images/BG/Mysterious_Forest.png				
+Texture	Somewhere_Dangerous	Assets/Images/BG/Somewhere_Dangerous.png				
+Texture	TexLogo	Assets/Images/Menu/logo_bg.png				
+Texture	TexHUD	Assets/Images/HUD.png				
+//						
+//						
+//ANIMATION	NAME	BASE TEXTURE	FRAMES	SPEED	LOOP	SCALE
+// Editor Tiles						
+Animation	SpawnPoint	SpawnPoint	1	1	1	1
+Animation	ChatBox	ChatBox	1	1	1	1
+Animation	LevelGoal	LevelGoal	1	1	1	1
+Animation	TileMud	TexTileMud	1	1	1	1
+Animation	TileGrass	TexTileGrass	1	1	1	1
+Animation	TileGrassCenter	TexGrassCenter	1	1	1	1
+Animation	TileGrassLeft	TexGrassLeft	1	1	1	1
+Animation	TileGrassMid	TexGrassMid	1	1	1	1
+Animation	TileGrassRight	TexGrassRight	1	1	1	1
+Animation	Box	TexBox	1	1	1	1
+Animation	Slime	TexSlime	1	1	1	1
+Animation	SlimeWalk	TexSlimeWalk	2	6	1	1
+Animation	Mushroom	TexMushroom	1	1	1	1
+Animation	Bat	TexBat	1	1	1	1
+Animation	Demon	TexDemon	1	1	1	1
+Animation	ManaFlower	TexManaFlower	1	1	1	1
+Animation	Whisper	TexWhisper	1	1	1	1
+//						
+// Fox						
+Animation	FoxStand	TexFoxIdle	1	8	1	0.2
+Animation	FoxWalking	TexFoxRun	8	4	1	0.2
+Animation	FoxJump	TexFoxJump	8	8	0	0.2
+Animation	FoxBite	TexFoxBite	1	8	1	0.2
+Animation	FoxSleeping	TexFoxSleeping	1	1	1	0.2
+Animation	FoxBurrow	TexFoxBurrow	4	4	0	0.2
+//						
+// Environment						
+Animation	Explosion	TexExplosion	4	3	0	1
+Animation	BerriesLarge	TexBerriesLarge	1	1	1	1
+Animation	BerriesSmall	TexBerriesSmall	1	1	1	1
+Animation	Bullet	TexBullet	1	1	1	1
+Animation	Boomerang	TexBoomerang	1	1	1	1
+Animation	HUD	TexHUD	1	1	1	0.2
+//						
+// Mushroom						
+Animation	MushroomStand	TexMushroom	1	1	1	1
+Animation	MushroomWalk	TexMushroomWalk	2	5	1	1
+Animation	MushroomAttack	TexMushroomAttack	3	10	0	1
+//						
+// Bat						
+Animation	BatFly	TexBatFly	2	8	1	1
+Animation	BatAttack	TexBatAttack	1	1	1	1
+//						
+// Mana Flower						
+Animation	ManaFlowerSpent	TexManaSpent	1	1	1	1
+Animation	Mana	TexMana	1	1	1	1
+//						
+//						
+// SOUNDS	NAME	FILE PATH	VOLUME			
+Sound	apply	Assets/SFX/apply.ogg	100			
+Sound	return	Assets/SFX/return.ogg	100			
+Sound	ui	Assets/SFX/ui.ogg	100			
+Sound	mana	Assets/SFX/mana.ogg	100			
+Sound	health	Assets/SFX/health.ogg	100			
+Sound	fox_jump	Assets/SFX/fox_jump.ogg	100			
+Sound	fox_hurt	Assets/SFX/fox_hurt.ogg	100			
+Sound	fox_bite	Assets/SFX/fox_bite.ogg	100			
+Sound	fox_burrow	Assets/SFX/fox_burrow.ogg	100			
+Sound	familiar_jump	Assets/SFX/familiar_jump.ogg	100			
+Sound	familiar_shoot	Assets/SFX/familiar_shoot.ogg	100			
+Sound	slime_hurt	Assets/SFX/slime_hurt.ogg	100			
+Sound	mushroom_spit	Assets/SFX/mushroom_spit.ogg	100			
+Sound	mushroom_hurt	Assets/SFX/mushroom_hurt.ogg	100			
+Sound	bat_attack	Assets/SFX/bat_attack.ogg	100			
+Sound	bat_hurt	Assets/SFX/bat_hurt.ogg	100			
+Sound	demon_hurt	Assets/SFX/demon_hurt.ogg	100			
+Sound	demon_attack	Assets/SFX/demon_attack.ogg	100			

@@ -1,0 +1,7 @@
+// SCENE 5:
+Message Kao(Crow) I'm impressed! You've done well!
+Message Familiar(Fairy) Even I couldn't do that! I swear!
+Message Kao(Crow) Just beyond here lie the caves...
+Message Kao(Crow) Caves home to the Forest Guardian.
+Message Kao(Crow) Even here I have not ventured till now.
+Message Kao(Crow) Do not lose hope, little fox...
