@@ -77,6 +77,10 @@ else
 	cp $(CPR_PATH)/bin/libidn2-0.dll $(RELEASE_DIR)/
 	cp $(CPR_PATH)/bin/libnghttp2-14.dll $(RELEASE_DIR)/
 	cp $(CPR_PATH)/bin/libnghttp3-9.dll $(RELEASE_DIR)/
+	cp $(CPR_PATH)/bin/libngtcp2-16.dll $(RELEASE_DIR)/
+	cp $(CPR_PATH)/bin/libngtcp2_crypto_ossl-0.dll $(RELEASE_DIR)/
+	cp $(CPR_PATH)/bin/libpsl-5.dll $(RELEASE_DIR)/
+	cp $(CPR_PATH)/bin/libssh2-1.dll $(RELEASE_DIR)/
 	cp -r Assets $(RELEASE_DIR)/
 endif
 
