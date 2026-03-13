@@ -37,7 +37,7 @@ void launchUpdater()
 
 int main()
 {
-    if (checkForUpdates("1.0.0")) 
+    if (checkForUpdates("1.1")) 
     {
         downloadAndExtractUpdates();
         launchUpdater();

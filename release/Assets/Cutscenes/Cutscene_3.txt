@@ -1,0 +1,10 @@
+// SCENE 3:
+Message Kao(Crow) Careful now. We're not so safe out in these woods.
+Message Fox There are monsters here?
+Message Kao(Crow) Indeed, yes. I have brought this weapon to aid you.
+Message Familiar(Fairy) Unfortunately, sometimes my magic isn't enough.
+Message Kao(Crow) To escape, you must travel far deep into the woods,
+Message Kao(Crow) and defeat the Forest Guardian to free yourself.
+Message Familiar(Fairy) It really isn't safe... I see monsters up ahead!
+Message Familiar(Fairy) Also, I can help you jump higher if you'd like!
+Message Kao(Crow) Make haste now, and take care. I will see you soon.

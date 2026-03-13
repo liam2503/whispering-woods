@@ -1,0 +1,9 @@
+// SCENE 1:
+Message Fox Hmngh... how did I get here?
+Message Kao(Crow) Ah, you've awoken...
+Message Kao(Crow) If you're trying to escape this forest...
+Message Kao(Crow) you can't do it alone... My friend can help.
+Message Familiar(Fairy) Hello! I will help you with my magic!
+Message Kao(Crow) There are some boxes blocking your path up ahead.
+Message Kao(Crow) Try using your friend's magic to clear the way.
+Message Familiar(Fairy) Let's do this!
