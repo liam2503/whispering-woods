@@ -198,7 +198,7 @@ void ScenePlay::sysDoAction(const Action &a_action)
 
         if (a_action.getState() == "START")
         {
-            m_pGame->changeScene("MENU", nullptr, true);
+            onEnd();
         }
         return; 
     }
@@ -225,7 +225,18 @@ void ScenePlay::sysDoAction(const Action &a_action)
             if (m_bBoomerangUnlocked && m_player->getComponent<CompState>().state != EntityState::BURROWING &&
                 m_entityManager.getEntities("leaf").empty())
             {
-                spawnBoomerang(m_player);
+                VectorPP finalTarget;
+                if (m_pGame->isUsingController())
+                    finalTarget = familiarPosition + (m_lastAimDirection * 1000.0f);
+                else
+                {
+                    sf::View pView = buildPlayerView(m_player);
+                    sf::Vector2i pixel((int)m_vMousePos.x, (int)m_vMousePos.y);
+                    sf::Vector2f world = m_pGame->window().mapPixelToCoords(pixel, pView);
+                    finalTarget = VectorPP(world.x, world.y);
+                }
+
+                spawnBoomerang(m_player, finalTarget);
                 m_pGame->playSound("familiar_shoot");
             }
         }
@@ -340,7 +351,7 @@ void ScenePlay::sysDoAction(const Action &a_action)
                     {
                         if (m_player->getComponent<CompMana>().currentMana >= std::max(1, (int)std::ceil(5 * m_manaCostMult)))
                         {
-                            createLeaf(particles.getEmitter());
+                            createLeaf(particles.getEmitter(), finalTarget);
                             m_pGame->playSound("familiar_shoot");
                             m_player->getComponent<CompMana>().currentMana -= std::max(1, (int)std::ceil(5 * m_manaCostMult));
                         }

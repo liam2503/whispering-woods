@@ -13,7 +13,7 @@ VectorPP ScenePlay::gridToMidPixel(float gridX, float gridY, Entity *a_pEntity, 
     float cellWidth = m_vGridSize.x;
     float cellHeight = m_vGridSize.y;
 
-    float worldHeight = (float)m_pGame->window().getSize().y;
+    float worldHeight = (float)height();
 
     if (!a_pEntity->hasComponent<CompAnimation>())
     {

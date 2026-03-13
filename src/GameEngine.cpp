@@ -64,7 +64,7 @@ void GameEngine::init(const std::string &a_strPath)
 {
     initKeyBindings();
     m_assets.loadFromFile(a_strPath);
-    m_window.create(sf::VideoMode(1280, 720), "The Whispering Wood", sf::Style::Titlebar | sf::Style::Close);
+    m_window.create(sf::VideoMode(1280, 720), "The Whispering Wood", sf::Style::Default);
     m_window.setFramerateLimit(60);
     m_fFadeAlpha = 255.0f;
     m_bIsFadingIn = true;
@@ -83,6 +83,22 @@ void GameEngine::init(const std::string &a_strPath)
     m_loadingText.setString("Loading...");
     m_loadingText.getLocalBounds();
     m_loadingText.setString("");
+}
+
+void GameEngine::updateViewport(unsigned int width, unsigned int height)
+{
+    float targetRatio = 1280.0f / 720.0f;
+    float windowRatio = (float)width / (float)height;
+    float vWidth = 1.0f, vHeight = 1.0f, vPosX = 0.0f, vPosY = 0.0f;
+
+    if (windowRatio > targetRatio) {
+        vWidth = targetRatio / windowRatio;
+        vPosX = (1.0f - vWidth) / 2.0f;
+    } else {
+        vHeight = windowRatio / targetRatio;
+        vPosY = (1.0f - vHeight) / 2.0f;
+    }
+    m_letterboxViewport = sf::FloatRect(vPosX, vPosY, vWidth, vHeight);
 }
 
 void GameEngine::requestMusic(const std::string &path, float targetVolume)
@@ -385,11 +401,13 @@ void GameEngine::setControllerButton(const std::string &action, unsigned int but
 void GameEngine::sysUserInput()
 {
     sf::Event event{};
-
     while (m_window.pollEvent(event))
     {
         if (event.type == sf::Event::Closed)
             quit();
+        
+        if (event.type == sf::Event::Resized)
+            updateViewport(event.size.width, event.size.height);
 
         if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::X)
         {

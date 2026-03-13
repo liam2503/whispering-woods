@@ -193,9 +193,9 @@ protected:
     void createBullet(const VectorPP &familiarPos, const VectorPP &a_vMousePos);
     void createMeleeAttack();
     void createElementBall(const VectorPP &familiarPos, const VectorPP &a_vMousePos, EntityStatus m_currentElement);
-    void createLeaf(const VectorPP &familiarPos);
+    void createLeaf(const VectorPP &familiarPos, const VectorPP &targetPos);
     void createBossBullet(VectorPP origin, VectorPP target);
-    void spawnBoomerang(Entity *entity);
+    void spawnBoomerang(Entity *entity, const VectorPP &targetPos);
 
     // Helpers
     sf::View buildPlayerView(Entity *player);

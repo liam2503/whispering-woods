@@ -156,7 +156,7 @@ void SceneEditor::saveLevel()
 
     float pGridX = 3;
     float pGridY = 3;
-    float worldH = (float)m_pGame->window().getSize().y;
+    float worldH = (float)height();
 
     for (auto e : entities)
     {

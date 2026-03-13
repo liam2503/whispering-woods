@@ -67,6 +67,10 @@ protected:
     void sysUserInput();
     Scene *currentScene();
 
+    // --- Viewport Management ---
+    sf::FloatRect m_letterboxViewport = { 0.f, 0.f, 1.f, 1.f };
+    void updateViewport(unsigned int width, unsigned int height);
+
 public:
     // --- Lifecycle ---
     GameEngine(const std::string &a_strPath);
@@ -108,4 +112,7 @@ public:
     sf::RenderWindow &window();
     const Assets &getAssets() const;
     size_t getCurrentFrame();
+    
+    // --- Viewport Management ---
+    sf::FloatRect getViewport() const { return m_letterboxViewport; }
 };

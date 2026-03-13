@@ -5,28 +5,24 @@
 
 void ScenePlay::sysRender()
 {
-    if (!m_bIsPaused)
-        m_pGame->window().clear(sf::Color(100, 100, 255));
-    else
-        m_pGame->window().clear(sf::Color(50, 50, 150));
+    // Clear to black so the letterbox bars stay black
+    m_pGame->window().clear(sf::Color::Black);
 
-    VectorPP &pPos = m_player->getComponent<CompTransform>().vPosition;
-    sf::View view = m_pGame->window().getView();
-    float halfW = view.getSize().x / 2.0f;
-    float viewX = std::max(halfW, pPos.x);
-    float halfH = view.getSize().y / 2.0f;
-    float targetY = pPos.y - 100.0f;
-    float viewY = std::min(targetY, height() - halfH);
-    if (height() < view.getSize().y)
-        viewY = halfH;
-
-    view.setCenter(viewX, viewY);
+    sf::View view = buildPlayerView(m_player);
     m_pGame->window().setView(view);
 
-    // Draw Background
+    // Background
+    float halfH = view.getSize().y / 2.0f;
     float camTopLeftX = view.getCenter().x - (view.getSize().x / 2.0f);
     float camTopLeftY = view.getCenter().y - halfH;
+
     m_backgroundSprite.setPosition(camTopLeftX, camTopLeftY);
+    
+    if (!m_bIsPaused)
+        m_backgroundSprite.setColor(sf::Color::White);
+    else
+        m_backgroundSprite.setColor(sf::Color(100, 100, 100));
+
     m_pGame->window().draw(m_backgroundSprite);
 
     // Draw Entities
@@ -59,10 +55,8 @@ void ScenePlay::sysRender()
                 if (entity->hasComponent<CompFallingTile>())
                 {
                     float op = entity->getComponent<CompFallingTile>().opacity;
-                    if (op < 0)
-                        op = 0;
-                    if (op > 255)
-                        op = 255;
+                    if (op < 0) op = 0;
+                    if (op > 255) op = 255;
                     sprite.setColor(sf::Color(255, 255, 255, static_cast<sf::Uint8>(op)));
                 }
 
@@ -100,7 +94,7 @@ void ScenePlay::sysRender()
     float zoomFactor = 2.0f;
     float heightRatio = 0.7f;
     minimapView.setSize(windowSize.x * zoomFactor, windowSize.y * zoomFactor * heightRatio);
-
+    
     if (m_player)
     {
         auto &pPos = m_player->getComponent<CompTransform>().vPosition;
@@ -111,15 +105,14 @@ void ScenePlay::sysRender()
         minimapView.setCenter(centerX, centerY);
     }
 
-    minimapView.setViewport(sf::FloatRect(0.75f, 0.0f, 0.25f, 0.25f * heightRatio));
+    // Minimap nested viewport calculation
+    sf::FloatRect lb = m_pGame->getViewport();
+    minimapView.setViewport(sf::FloatRect(lb.left + lb.width * 0.75f, lb.top, lb.width * 0.25f, lb.height * 0.25f * heightRatio));
     m_pGame->window().setView(minimapView);
 
     sf::RectangleShape mmBg;
-
     mmBg.setSize(sf::Vector2f(windowSize.x * zoomFactor, windowSize.y * zoomFactor * heightRatio));
-
     mmBg.setOrigin(windowSize.x * zoomFactor / 2.0f, (windowSize.y * zoomFactor * heightRatio) / 2.0f);
-
     mmBg.setPosition(minimapView.getCenter());
     mmBg.setFillColor(sf::Color(0, 0, 0, 150));
     m_pGame->window().draw(mmBg);
@@ -135,11 +128,8 @@ void ScenePlay::sysRender()
 
         if (tag == "tile" && entity->hasComponent<CompAnimation>())
         {
-            if (entity->getComponent<CompAnimation>().animation.getName() == "LevelGoal")
-            {
-                continue;
-            }
-            if (entity->getComponent<CompAnimation>().animation.getName() == "ChatBox")
+            if (entity->getComponent<CompAnimation>().animation.getName() == "LevelGoal" || 
+                entity->getComponent<CompAnimation>().animation.getName() == "ChatBox")
             {
                 continue;
             }
@@ -168,7 +158,6 @@ void ScenePlay::sysRender()
         }
     }
 
-    m_pGame->window().setView(m_pGame->window().getDefaultView());
     m_pGame->window().setView(view);
 
     // Familiar and Particles
@@ -176,9 +165,11 @@ void ScenePlay::sysRender()
     int familiarOffsetY = -90;
     if (m_player->getComponent<CompTransform>().vScale.x < 0)
         familiarOffsetX = -familiarOffsetX;
+    
     familiarPosition = VectorPP(
         m_player->getComponent<CompTransform>().vPosition.x + familiarOffsetX,
         m_player->getComponent<CompTransform>().vPosition.y + familiarOffsetY);
+    
     particles.setEmitter(familiarPosition);
     particles.update();
     particles.draw(m_pGame->window());
@@ -196,11 +187,46 @@ void ScenePlay::sysRender()
     }
     m_pGame->window().draw(vertArray, sf::BlendAdd);
 
-    // HUD
+    for (Entity *entity : m_entityManager.getEntities())
+    {
+        if (entity->getTag() != "player" && entity->hasComponent<CompHealth>())
+        {
+            CompHealth &healthComp = entity->getComponent<CompHealth>();
+            float hpRatio = 0.0f;
+            CompTransform &transform = entity->getComponent<CompTransform>();
+            float monsterX = transform.vPosition.x - (100.0f / 2.0f);
+            float monsterY = transform.vPosition.y - 50.0f;
+            float barWidth = 100.0f;
+            float barHeight = 5.0f;
+            
+            if (healthComp.health > 0)
+                hpRatio = healthComp.currentHealth / (float)healthComp.health;
+            
+            sf::RectangleShape bgHp(sf::Vector2f(barWidth, barHeight));
+            bgHp.setPosition(monsterX, monsterY);
+            bgHp.setFillColor(sf::Color::White);
+            m_pGame->window().draw(bgHp);
+
+            sf::RectangleShape fillHp(sf::Vector2f(barWidth * hpRatio, barHeight));
+            fillHp.setPosition(monsterX, monsterY);
+            fillHp.setFillColor(sf::Color::Red);
+            m_pGame->window().draw(fillHp);
+
+            sf::RectangleShape borderHp(sf::Vector2f(barWidth, barHeight));
+            borderHp.setPosition(monsterX, monsterY);
+            borderHp.setFillColor(sf::Color::Transparent);
+            borderHp.setOutlineThickness(2.0f);
+            borderHp.setOutlineColor(sf::Color::Black);
+            m_pGame->window().draw(borderHp);
+        }
+    }
+
     if (m_bDrawPlayerHUD)
     {
-        sf::View hudView = m_pGame->window().getDefaultView();
+        sf::View hudView(sf::FloatRect(0.f, 0.f, 1280.f, 720.f));
+        hudView.setViewport(m_pGame->getViewport());
         m_pGame->window().setView(hudView);
+
         if (m_bShowDialogue)
         {
             float viewWidth = hudView.getSize().x;
@@ -210,7 +236,6 @@ void ScenePlay::sysRender()
             m_pGame->window().draw(m_dialogueSprite);
 
             sf::FloatRect bounds = m_dialogueSprite.getGlobalBounds();
-
             m_speakerText.setPosition(
                 m_dialogueSprite.getPosition().x - bounds.width / 2.0f + 90.0f,
                 m_dialogueSprite.getPosition().y - bounds.height + 5.0f);
@@ -234,6 +259,7 @@ void ScenePlay::sysRender()
             float manaY = margin + (85.0f);
             float barWidth = 190.0f;
             float barHeight = 15.0f;
+
             CompHealth &healthComp = m_player->getComponent<CompHealth>();
             CompMana &manaComp = m_player->getComponent<CompMana>();
 
@@ -274,6 +300,7 @@ void ScenePlay::sysRender()
             statusInfo.setString(std::to_string(manaComp.currentMana) + "/" + std::to_string(manaComp.mana));
             statusInfo.setPosition(barX + 10, manaY - 1);
             m_pGame->window().draw(statusInfo);
+
             if (m_bBoomerangUnlocked)
             {
                 const Animation &boomAnim = m_pGame->getAssets().getAnimation("Boomerang");
@@ -288,13 +315,8 @@ void ScenePlay::sysRender()
                 m_pGame->window().draw(boomSprite);
             }
         }
-    }
 
-    m_pGame->window().setView(view);
-
-    // Enemy Health Bars
-    if (m_bDrawPlayerHUD)
-    {
+        // Enemy Health Bars
         for (Entity *entity : m_entityManager.getEntities())
         {
             if (entity->getTag() != "player" && entity->hasComponent<CompHealth>())
@@ -306,9 +328,10 @@ void ScenePlay::sysRender()
                 float monsterY = transform.vPosition.y - 50.0f;
                 float barWidth = 100.0f;
                 float barHeight = 5.0f;
+                
                 if (healthComp.health > 0)
                     hpRatio = healthComp.currentHealth / (float)healthComp.health;
-
+                
                 sf::RectangleShape bgHp(sf::Vector2f(barWidth, barHeight));
                 bgHp.setPosition(monsterX, monsterY);
                 bgHp.setFillColor(sf::Color::White);
@@ -330,10 +353,13 @@ void ScenePlay::sysRender()
     }
 
     // Game Over / Fade Overlays
-    m_pGame->window().setView(m_pGame->window().getDefaultView());
+    sf::View overlayView(sf::FloatRect(0.f, 0.f, 1280.f, 720.f));
+    overlayView.setViewport(m_pGame->getViewport());
+    m_pGame->window().setView(overlayView);
+    
     if (m_bShowGameOver || m_bShowEndScreen)
     {
-        sf::RectangleShape darkenOverlay(sf::Vector2f((float)width(), (float)height()));
+        sf::RectangleShape darkenOverlay(sf::Vector2f(1280.f, 720.f));
         float darkenProgress = (m_fScreenFadeAlpha / 255.0f);
         sf::Uint8 darkenAlpha = static_cast<sf::Uint8>(180 * darkenProgress);
         darkenOverlay.setFillColor(sf::Color(0, 0, 0, darkenAlpha));

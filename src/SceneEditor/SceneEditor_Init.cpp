@@ -14,11 +14,12 @@ SceneEditor::SceneEditor(GameEngine *gameEngine, const std::string &a_strLevelPa
 
 void SceneEditor::init()
 {
-    sf::Vector2u windowSize = m_pGame->window().getSize();
-    m_worldView.setSize((float)windowSize.x, (float)windowSize.y);
-    m_worldView.setCenter((float)windowSize.x / 2.0f, (float)windowSize.y / 2.0f);
+    m_worldView.setSize((float)width(), (float)height());
+    m_worldView.setCenter((float)width() / 2.0f, (float)height() / 2.0f);
 
-    m_hudView = m_pGame->window().getDefaultView();
+    m_hudView.setSize((float)width(), (float)height());
+    m_hudView.setCenter((float)width() / 2.0f, (float)height() / 2.0f);
+
     m_pGame->window().setMouseCursorVisible(false);
 
     if (m_cursorTexture.loadFromFile("Assets/Images/Animations/cursor.png"))
@@ -28,7 +29,7 @@ void SceneEditor::init()
         m_cursorLoaded = true;
     }
 
-    m_vMousePos = VectorPP(windowSize.x / 2.0f, windowSize.y / 2.0f);
+    m_vMousePos = VectorPP((float)width() / 2.0f, (float)height() / 2.0f);
     m_cursorSprite.setPosition(m_vMousePos.x, m_vMousePos.y);
 
     registerAction(sf::Keyboard::Escape, "QUIT");

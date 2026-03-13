@@ -10,6 +10,7 @@ void SceneEditor::sysRender()
 {
     m_pGame->window().clear(sf::Color(40, 40, 40));
 
+    m_worldView.setViewport(m_pGame->getViewport());
     m_pGame->window().setView(m_worldView);
 
     float viewW = m_worldView.getSize().x;
@@ -73,7 +74,7 @@ void SceneEditor::sysRender()
         float right = center.x + size.x / 2;
         float top = center.y - size.y / 2;
         float bottom = center.y + size.y / 2;
-        float worldH = (float)m_pGame->window().getSize().y;
+        float worldH = (float)height();
         float startX = left - std::fmod(left, m_vGridSize.x);
         for (float x = startX; x < right; x += m_vGridSize.x)
         {
@@ -111,6 +112,7 @@ void SceneEditor::sysRender()
         }
     }
 
+m_hudView.setViewport(m_pGame->getViewport());
     m_pGame->window().setView(m_hudView);
     float currentHudHeight = 180.0f;
     sf::RectangleShape hudBg(sf::Vector2f((float)width(), currentHudHeight));
@@ -184,6 +186,10 @@ void SceneEditor::sysRender()
 
     if (m_cursorLoaded)
     {
+        sf::Vector2i pixelPos((int)m_vMousePos.x, (int)m_vMousePos.y);
+        sf::Vector2f hudCoords = m_pGame->window().mapPixelToCoords(pixelPos, m_hudView);
+        
+        m_cursorSprite.setPosition(hudCoords.x, hudCoords.y);
         m_pGame->window().draw(m_cursorSprite);
     }
 
@@ -224,15 +230,17 @@ void SceneEditor::drawChatPopup()
 {
     if (!m_pCurrentChatEntity || !m_pCurrentChatEntity->hasComponent<CompTransform>())
         return;
+
     VectorPP pos = m_pCurrentChatEntity->getComponent<CompTransform>().vPosition;
     sf::Vector2f entityPos((float)pos.x, (float)pos.y);
 
-    sf::Vector2i pixelPos = m_pGame->window().mapCoordsToPixel(entityPos, m_worldView);
+    sf::Vector2i entityPixelPos = m_pGame->window().mapCoordsToPixel(entityPos, m_worldView);
+    sf::Vector2f hudPos = m_pGame->window().mapPixelToCoords(entityPixelPos, m_hudView);
 
     float w = 300.0f;
     float h = 100.0f;
-    float x = pixelPos.x - w / 2.0f;
-    float y = pixelPos.y - h - 50.0f;
+    float x = hudPos.x - w / 2.0f;
+    float y = hudPos.y - h - 50.0f;
 
     sf::RectangleShape bg(sf::Vector2f(w, h));
     bg.setPosition(x, y);

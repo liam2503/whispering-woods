@@ -5,7 +5,10 @@
 
 void SceneMenu::sysRender()
 {
-    m_pGame->window().setView(m_pGame->window().getDefaultView());
+    sf::View view(sf::FloatRect(0.f, 0.f, 1280.f, 720.f));
+    view.setViewport(m_pGame->getViewport());
+    m_pGame->window().setView(view);
+
     m_pGame->window().clear(sf::Color::Black);
 
     // Render Static Screens
@@ -26,7 +29,7 @@ void SceneMenu::sysRender()
 
     // Render Background & Title
     m_pGame->window().draw(m_backgroundSprite);
-    m_titleText.setPosition(sf::Vector2f(m_pGame->window().getSize().x / 2 - m_titleText.getLocalBounds().width / 2, 40));
+    m_titleText.setPosition(sf::Vector2f(width() / 2.0f - m_titleText.getLocalBounds().width / 2.0f, 40.0f));
     m_pGame->window().draw(m_titleText);
 
     // Determine Subtitle
@@ -45,11 +48,11 @@ void SceneMenu::sysRender()
         subTitle = "Key Bindings";
 
     if (!subTitle.empty())
-    {
-        m_subtitleText.setString(subTitle);
-        m_subtitleText.setPosition(sf::Vector2f(m_pGame->window().getSize().x / 2 - m_subtitleText.getLocalBounds().width / 2, 250));
-        m_pGame->window().draw(m_subtitleText);
-    }
+{
+    m_subtitleText.setString(subTitle);
+    m_subtitleText.setPosition(sf::Vector2f(width() / 2.0f - m_subtitleText.getLocalBounds().width / 2.0f, 250.0f));
+    m_pGame->window().draw(m_subtitleText);
+}
 
     // Render Menu Options
     const auto &currentMenu = m_mapMenuOptions.at(m_currentState);

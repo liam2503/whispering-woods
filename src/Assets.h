@@ -29,7 +29,7 @@ private:
     std::map<std::string, SoundData> m_mapSounds;
 
     // Internal Load Helpers
-    void addTexture(const std::string &a_strTextureTypes, const std::string &a_strPath, bool a_bSmooth = true);
+    void addTexture(const std::string &a_strTextureTypes, const std::string &a_strPath, bool a_bSmooth = false);
     void addAnimation(const std::string &a_strAnimationName, const std::string &a_strTextureName, size_t a_nFrameCount, float a_nSpeed, bool a_bLoop, float a_fScale);
     void addFont(const std::string &a_strFontName, const std::string &a_strPath);
     void addSound(const std::string &name, const std::string &path, float volume);

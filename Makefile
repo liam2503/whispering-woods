@@ -70,6 +70,10 @@ else
 	cp $(SFML_PATH)/bin/sfml-audio-2.dll $(RELEASE_DIR)/
 	cp $(SFML_PATH)/bin/sfml-system-2.dll $(RELEASE_DIR)/
 	cp $(SFML_PATH)/bin/openal32.dll $(RELEASE_DIR)/
+	cp $(CPR_PATH)/bin/libcpr-1.dll $(RELEASE_DIR)/
+	cp $(CPR_PATH)/bin/libcurl-4.dll $(RELEASE_DIR)/
+	cp $(CPR_PATH)/bin/zlib1.dll $(RELEASE_DIR)/
+	cp -r Assets $(RELEASE_DIR)/
 	cp -r Assets $(RELEASE_DIR)/
 endif
 

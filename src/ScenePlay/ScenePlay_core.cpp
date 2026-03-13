@@ -109,9 +109,7 @@ void ScenePlay::init(const std::string &a_strLevelPath)
 
     registerAction("TRIGGER", "SHOOT");
 
-    sf::Vector2u winSize = m_pGame->window().getSize();
-    m_vMousePos = VectorPP(winSize.x / 2.0f, winSize.y / 2.0f);
-
+    m_vMousePos = VectorPP((float)width() / 2.0f, (float)height() / 2.0f);
     m_lastAimDirection = VectorPP(1.0f, 0.0f);
 
     m_gridText.setCharacterSize(12);
@@ -125,13 +123,11 @@ void ScenePlay::init(const std::string &a_strLevelPath)
     if (m_dialogueTexture.loadFromFile("Assets/Images/TextBox.png"))
     {
         m_dialogueSprite.setTexture(m_dialogueTexture);
-
-        float targetWidth = winSize.x * 0.6f;
+        float targetWidth = (float)width() * 0.6f; 
         float targetHeight = 150.0f;
-
         sf::Vector2u texSize = m_dialogueTexture.getSize();
-        m_dialogueSprite.setScale(targetWidth / texSize.x, targetHeight / texSize.y);
 
+        m_dialogueSprite.setScale(targetWidth / texSize.x, targetHeight / texSize.y);
         m_dialogueSprite.setOrigin(texSize.x / 2.0f, (float)texSize.y);
     }
 
@@ -172,12 +168,13 @@ void ScenePlay::init(const std::string &a_strLevelPath)
 
 sf::View ScenePlay::buildPlayerView(Entity *player)
 {
-    sf::View view = m_pGame->window().getDefaultView();
+    sf::View view(sf::FloatRect(0.f, 0.f, 1280.f, 720.f));
+    sf::FloatRect lb = m_pGame->getViewport();
     sf::Vector2f viewSize = view.getSize();
 
     if (m_player2 == nullptr)
     {
-        view.setViewport(sf::FloatRect(0.f, 0.f, 1.f, 1.f));
+        view.setViewport(lb);
         view.setSize(viewSize.x, viewSize.y);
     }
     else
@@ -186,21 +183,21 @@ sf::View ScenePlay::buildPlayerView(Entity *player)
 
         if (player->getTag() == "player")
         {
-            view.setViewport(sf::FloatRect(0.f, 0.f, 0.5f, 1.f));
+            view.setViewport(sf::FloatRect(lb.left, lb.top, lb.width * 0.5f, lb.height));
         }
         else
         {
-            view.setViewport(sf::FloatRect(0.5f, 0.f, 0.5f, 1.f));
+            view.setViewport(sf::FloatRect(lb.left + (lb.width * 0.5f), lb.top, lb.width * 0.5f, lb.height));
         }
     }
 
     VectorPP &pPos = player->getComponent<CompTransform>().vPosition;
-    float viewX = pPos.x;
-
+    
+    float halfW = view.getSize().x / 2.0f;
     float halfH = view.getSize().y / 2.0f;
-    float viewY = std::min(pPos.y - 100.0f, height() - halfH);
-    if (height() < view.getSize().y)
-        viewY = halfH;
+
+    float viewX = std::max(halfW, pPos.x);
+    float viewY = std::min(pPos.y - 100.0f, (float)height() - halfH);
 
     view.setCenter(viewX, viewY);
     return view;
@@ -208,24 +205,11 @@ sf::View ScenePlay::buildPlayerView(Entity *player)
 
 VectorPP ScenePlay::windowToWorld(const VectorPP &a_vWorldPos)
 {
-    VectorPP &pPos = m_player->getComponent<CompTransform>().vPosition;
-    float playerX = pPos.x / 2.0f;
-    sf::View view = m_pGame->window().getDefaultView();
-    float halfView = view.getSize().x / 2.0f;
+    sf::View p1View = buildPlayerView(m_player);
+    sf::Vector2i pixel((int)a_vWorldPos.x, (int)a_vWorldPos.y);
+    sf::Vector2f world = m_pGame->window().mapPixelToCoords(pixel, p1View);
 
-    if (playerX < halfView)
-    {
-        return a_vWorldPos;
-    }
-    else
-    {
-        sf::Vector2i pixel((int)a_vWorldPos.x, (int)a_vWorldPos.y);
-
-        sf::View p1View = buildPlayerView(m_player);
-        sf::Vector2f world = m_pGame->window().mapPixelToCoords(pixel, p1View);
-
-        return VectorPP(world.x, world.y);
-    }
+    return VectorPP(world.x, world.y);
 }
 
 void ScenePlay::update()
@@ -301,9 +285,12 @@ void ScenePlay::update()
     {
         if (m_fScreenFadeAlpha < 255.0f)
         {
-            m_fScreenFadeAlpha += 5.0f;
+            m_fScreenFadeAlpha += 2.0f;
+            
             if (m_fScreenFadeAlpha > 255.0f)
+            {
                 m_fScreenFadeAlpha = 255.0f;
+            }
         }
     }
 

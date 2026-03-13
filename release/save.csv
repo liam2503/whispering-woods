@@ -1,0 +1,20 @@
+Difficulty,Normal
+MusicVolume,100
+SFXVolume,100
+VoiceVolume,100
+JoystickID,0
+SwapABXY,0
+KEY_MOVE_LEFT,0
+KEY_MOVE_RIGHT,3
+KEY_JUMP,22
+KEY_BURROW,18
+KEY_MELEE,57
+KEY_SHOOT,-1
+KEY_BOOMERANG,4
+KEY_MENU,36
+BTN_MELEE,0
+BTN_BOOMERANG,3
+BTN_SELECT,0
+BTN_CANCEL,1
+Assets/Levels/2 - Green Fields.txt
+BoomerangUnlocked,1

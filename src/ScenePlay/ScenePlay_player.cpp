@@ -98,29 +98,29 @@ void ScenePlay::createElementBall(const VectorPP &familiarPos, const VectorPP &a
     bullet->addComponents<CompBoundingBox>(VectorPP(8, 8));
 }
 
-void ScenePlay::createLeaf(const VectorPP &familiarPos)
+void ScenePlay::createLeaf(const VectorPP &familiarPos, const VectorPP &targetPos)
 {
     Entity *leaf = m_entityManager.addEntity("leaf");
 
-    float direction = (m_player->getComponent<CompTransform>().vScale.x > 0)
-                          ? 1.0f
-                          : -1.0f;
-
-    VectorPP dir(direction, -0.6f);
-
+    VectorPP dir = targetPos - familiarPos;
     float len = std::sqrt(dir.x * dir.x + dir.y * dir.y);
     if (len != 0.0f)
     {
         dir.x /= len;
         dir.y /= len;
     }
+    else
+    {
+        
+        float direction = (m_player->getComponent<CompTransform>().vScale.x > 0) ? 1.0f : -1.0f;
+        dir = VectorPP(direction, 0.0f);
+    }
 
     leaf->addComponents<CompAnimation>(
-        m_pGame->getAssets().getAnimation("Boomerang"),
-        true);
+        m_pGame->getAssets().getAnimation("Boomerang"), true);
 
     const float speed = 10.0f;
-    const float maxDist = 250.0f;
+    const float maxDist = 400.0f;
 
     leaf->addComponents<CompTransform>(
         familiarPos,
@@ -134,6 +134,15 @@ void ScenePlay::createLeaf(const VectorPP &familiarPos)
     auto &boomer = leaf->addComponents<CompBoomerang>();
     boomer.totalDistance = 0.0f;
     boomer.returning = false;
+}
+
+void ScenePlay::spawnBoomerang(Entity *entity, const VectorPP &targetPos)
+{
+    if (m_bBoomerangUnlocked)
+    {
+        VectorPP origin = entity->getComponent<CompTransform>().vPosition;
+        createLeaf(origin, targetPos);
+    }
 }
 
 void ScenePlay::createBullet(const VectorPP &familiarPos, const VectorPP &a_vMousePos)
@@ -168,7 +177,7 @@ void ScenePlay::sysHealthDetection()
                 {
                     if (liveNum <= 0)
                     {
-                        m_player->destroy();
+                        m_player->getComponent<CompBoundingBox>().isActive = false;
                         m_bShowGameOver = true;
                         m_fScreenFadeAlpha = 0.0f;
                         setPaused(true); 
@@ -223,15 +232,4 @@ void ScenePlay::createBossBullet(VectorPP origin, VectorPP target)
 
     float speed = 7.0f;
     bullet->getComponent<CompTransform>().vVelocity = VectorPP(velocity.x * speed, velocity.y * speed);
-}
-
-void ScenePlay::spawnBoomerang(Entity *entity)
-{
-
-    if (m_bBoomerangUnlocked)
-    {
-        VectorPP origin = entity->getComponent<CompTransform>().vPosition;
-
-        createLeaf(origin);
-    }
 }

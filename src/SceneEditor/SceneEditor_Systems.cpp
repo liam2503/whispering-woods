@@ -40,6 +40,21 @@ void SceneEditor::update()
         m_worldView.move(0, -m_cameraSpeed);
     if (m_bCamDown)
         m_worldView.move(0, m_cameraSpeed);
+
+    sf::Vector2f center = m_worldView.getCenter();
+    float halfW = width() / 2.0f;
+    float halfH = height() / 2.0f;
+
+    if (center.x < halfW) 
+        center.x = halfW;
+    
+    if (center.y > halfH) 
+        center.y = halfH;
+
+    if (center.x > 10000.0f) 
+        center.x = 10000.0f;
+
+    m_worldView.setCenter(center);
     if (m_statusFrames > 0)
     {
         m_statusFrames--;
@@ -67,7 +82,7 @@ void SceneEditor::sDragAndDrop()
         {
             VectorPP mouseWorld = windowToWorld(m_vMousePos);
             VectorPP animSize = e->getComponent<CompAnimation>().animation.getSize();
-            float worldH = (float)m_pGame->window().getSize().y;
+            float worldH = (float)height();
             float scale = e->getComponent<CompTransform>().vScale.x;
             float gx = std::round((mouseWorld.x - (animSize.x * scale / 2)) / m_vGridSize.x);
             float gy = std::round((worldH - mouseWorld.y - (animSize.y * scale / 2)) / m_vGridSize.y);
@@ -106,17 +121,24 @@ void SceneEditor::sysDoAction(const Action &a_action)
 
         if (a_action.getName() == "LEFT_CLICK")
         {
-            VectorPP clickPos = m_vMousePos;
+            sf::Vector2i pixelPos((int)m_vMousePos.x, (int)m_vMousePos.y);
+            sf::Vector2f hudCoords = m_pGame->window().mapPixelToCoords(pixelPos, m_hudView);
+            VectorPP clickPos(hudCoords.x, hudCoords.y);
+
             if (m_bChatBoxPopupOpen && m_pCurrentChatEntity)
             {
                 VectorPP pos = m_pCurrentChatEntity->getComponent<CompTransform>().vPosition;
                 sf::Vector2f entityPos((float)pos.x, (float)pos.y);
 
-                sf::Vector2i pixelPos = m_pGame->window().mapCoordsToPixel(entityPos, m_worldView);
+                // Map World -> Physical Window Pixels -> Logical HUD Pixels
+                sf::Vector2i entityPixelPos = m_pGame->window().mapCoordsToPixel(entityPos, m_worldView);
+                sf::Vector2f hudPos = m_pGame->window().mapPixelToCoords(entityPixelPos, m_hudView);
+
                 float w = 300.0f;
                 float h = 100.0f;
-                float x = pixelPos.x - w / 2.0f;
-                float y = pixelPos.y - h - 50.0f;
+                float x = hudPos.x - w / 2.0f;
+                float y = hudPos.y - h - 50.0f;
+
                 if (clickPos.x >= x && clickPos.x <= x + w && clickPos.y >= y && clickPos.y <= y + h)
                 {
                     if (clickPos.y > y + 65)
@@ -241,7 +263,8 @@ void SceneEditor::sysDoAction(const Action &a_action)
             }
             else
             {
-                VectorPP worldPos = windowToWorld(clickPos);
+                VectorPP worldPos = windowToWorld(m_vMousePos);
+
                 if (m_bEraserMode)
                 {
                     bool deleted = false;
@@ -288,7 +311,7 @@ void SceneEditor::sysDoAction(const Action &a_action)
                                 e->destroy();
                         }
 
-                        float worldH = (float)m_pGame->window().getSize().y;
+                        float worldH = (float)height();
                         float gx = std::floor(worldPos.x / m_vGridSize.x);
                         float gy = std::floor((worldH - worldPos.y) / m_vGridSize.y);
                         std::string tag = (m_selectedTile == "SpawnPoint") ? "spawnpoint" : ((m_selectedTile.substr(0, 3) == "Dec") ? "decoration" : "tile");
@@ -355,18 +378,18 @@ void SceneEditor::onEnd()
 
 VectorPP SceneEditor::windowToWorld(const VectorPP &a_vWindowPos)
 {
-    sf::Vector2f viewCenter = m_worldView.getCenter();
-    sf::Vector2f viewSize = m_worldView.getSize();
-    float currentX = viewCenter.x - (viewSize.x / 2.0f);
-    float currentY = viewCenter.y - (viewSize.y / 2.0f);
-    return VectorPP(currentX + a_vWindowPos.x, currentY + a_vWindowPos.y);
+    sf::Vector2i pixel((int)a_vWindowPos.x, (int)a_vWindowPos.y);
+    sf::Vector2f world = m_pGame->window().mapPixelToCoords(pixel, m_worldView);
+
+    return VectorPP(world.x, world.y);
 }
 
 VectorPP SceneEditor::gridToMidPixel(float gridX, float gridY, Entity *a_pEntity, float scale)
 {
     Animation &anim = a_pEntity->getComponent<CompAnimation>().animation;
     VectorPP animSize = anim.getSize();
-    float worldHeight = (float)m_pGame->window().getSize().y;
+    
+    float worldHeight = (float)height();
 
     float pixelX = (gridX * m_vGridSize.x) + (animSize.x * scale / 2.0f);
     float pixelY = worldHeight - (gridY * m_vGridSize.y) - (animSize.y * scale / 2.0f);

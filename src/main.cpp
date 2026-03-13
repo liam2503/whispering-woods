@@ -2,6 +2,8 @@
 #include <cstdlib>
 #include <fstream>
 #include <string>
+#include <filesystem>
+#include <algorithm>
 #include <cpr/cpr.h>
 #include "GameEngine.h"
 
@@ -19,11 +21,12 @@ std::string getLocalVersion()
 bool checkForUpdates(const std::string& currentVersion) 
 {
     cpr::Response r = cpr::Get(cpr::Url{"https://liam2503.github.io/version.txt"});
-    // Trim potential whitespace from server response
+    if (r.status_code != 200) return false;
+
     std::string serverVersion = r.text;
     serverVersion.erase(serverVersion.find_last_not_of(" \n\r\t") + 1);
     
-    return (r.status_code == 200 && serverVersion != currentVersion);
+    return (serverVersion != currentVersion);
 }
 
 void downloadAndExtractUpdates() 
@@ -44,14 +47,20 @@ void downloadAndExtractUpdates()
 void launchUpdater() 
 {
 #ifdef _WIN32
-    std::system("start update.bat");
+    std::filesystem::path batchPath = std::filesystem::current_path() / "update.bat";
+    std::string command = "start \"\" \"" + batchPath.string() + "\"";
+    std::system(command.c_str());
 #else
     std::system("chmod +x update.sh && ./update.sh &");
 #endif
 }
 
-int main()
+int main(int argc, char* argv[])
 {
+    if (argc > 0) {
+        std::filesystem::current_path(std::filesystem::path(argv[0]).parent_path());
+    }
+
     std::string currentV = getLocalVersion();
 
     if (checkForUpdates(currentV)) 
