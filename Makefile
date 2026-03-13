@@ -73,7 +73,10 @@ else
 	cp $(CPR_PATH)/bin/libcpr-1.dll $(RELEASE_DIR)/
 	cp $(CPR_PATH)/bin/libcurl-4.dll $(RELEASE_DIR)/
 	cp $(CPR_PATH)/bin/zlib1.dll $(RELEASE_DIR)/
-	cp -r Assets $(RELEASE_DIR)/
+	cp $(CPR_PATH)/bin/libbrotlidec.dll $(RELEASE_DIR)/
+	cp $(CPR_PATH)/bin/libidn2-0.dll $(RELEASE_DIR)/
+	cp $(CPR_PATH)/bin/libnghttp2-14.dll $(RELEASE_DIR)/
+	cp $(CPR_PATH)/bin/libnghttp3-9.dll $(RELEASE_DIR)/
 	cp -r Assets $(RELEASE_DIR)/
 endif
 
