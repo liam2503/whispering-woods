@@ -4,6 +4,7 @@
 #include <iostream>
 #include <filesystem>
 #include <algorithm>
+#include <fstream>
 
 namespace fs = std::filesystem;
 
@@ -39,6 +40,15 @@ void SceneMenu::init()
 
 void SceneMenu::initAssets()
 {
+    // --- Version Loading ---
+    std::string versionNum = "Unknown";
+    std::ifstream versionFile("version.txt");
+    if (versionFile.is_open())
+    {
+        versionFile >> versionNum;
+        versionFile.close();
+    }
+
     // --- Text Setup ---
     m_menuText.setFont(m_pGame->getAssets().getFont("Harnold"));
     m_menuText.setCharacterSize(CHAR_SIZE_ITEM_MAIN);
@@ -57,7 +67,7 @@ void SceneMenu::initAssets()
 
     // Developer Footer Text
     m_developerText.setFont(m_pGame->getAssets().getFont("Pixeloid"));
-    m_developerText.setString("Developed by Team Kitsune    Version 1.0.0");
+    m_developerText.setString("Developed by Team Kitsune     Version " + versionNum);
     m_developerText.setCharacterSize(CHAR_SIZE_FOOTER);
     m_developerText.setFillColor(sf::Color::White);
 

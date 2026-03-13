@@ -5,10 +5,25 @@
 #include <cpr/cpr.h>
 #include "GameEngine.h"
 
+std::string getLocalVersion() 
+{
+    std::ifstream file("version.txt");
+    std::string version;
+    if (file >> version) 
+    {
+        return version;
+    }
+    return "0.0";
+}
+
 bool checkForUpdates(const std::string& currentVersion) 
 {
     cpr::Response r = cpr::Get(cpr::Url{"https://liam2503.github.io/version.txt"});
-    return (r.status_code == 200 && r.text != currentVersion);
+    // Trim potential whitespace from server response
+    std::string serverVersion = r.text;
+    serverVersion.erase(serverVersion.find_last_not_of(" \n\r\t") + 1);
+    
+    return (r.status_code == 200 && serverVersion != currentVersion);
 }
 
 void downloadAndExtractUpdates() 
@@ -37,7 +52,9 @@ void launchUpdater()
 
 int main()
 {
-    if (checkForUpdates("1.1")) 
+    std::string currentV = getLocalVersion();
+
+    if (checkForUpdates(currentV)) 
     {
         downloadAndExtractUpdates();
         launchUpdater();

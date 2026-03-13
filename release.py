@@ -1,35 +1,17 @@
 import os
-import re
+import shutil
 import zipfile
 
-def get_current_version(main_cpp_path):
-    try:
-        with open(main_cpp_path, 'r', encoding='utf-8') as f:
-            content = f.read()
-        match = re.search(r'checkForUpdates\("([^"]+)"\)', content)
-        if match:
-            return match.group(1)
-    except FileNotFoundError:
-        pass
-    return "Unknown"
+def update_version_files(new_version, version_txt_path, release_folder):
+    # 1. Update the version.txt used by the server
+    with open(version_txt_path, 'w', encoding='utf-8') as f:
+        f.write(new_version.strip())
+    print(f"Updated server version file: {version_txt_path}")
 
-def update_version(new_version, main_cpp_path, version_txt_path):
-    try:
-        with open(main_cpp_path, 'r', encoding='utf-8') as f:
-            content = f.read()
-        
-        new_content = re.sub(r'(checkForUpdates\(")[^"]+("\))', rf'\g<1>{new_version}\g<2>', content)
-
-        with open(main_cpp_path, 'w', encoding='utf-8') as f:
-            f.write(new_content)
-        print(f"Updated {main_cpp_path} to version {new_version}")
-
-        with open(version_txt_path, 'w', encoding='utf-8') as f:
-            f.write(new_version.strip())
-        print(f"Updated {version_txt_path} to version {new_version}")
-
-    except Exception as e:
-        print(f"Error updating files: {e}")
+    # 2. Copy that same version.txt into the release folder for the player
+    release_version_path = os.path.join(release_folder, 'version.txt')
+    shutil.copy2(version_txt_path, release_version_path)
+    print(f"Copied version.txt to {release_folder}")
 
 def zip_release(release_dir, output_zip):
     if not os.path.exists(release_dir):
@@ -42,21 +24,17 @@ def zip_release(release_dir, output_zip):
                 file_path = os.path.join(root, file)
                 arcname = os.path.relpath(file_path, release_dir)
                 zf.write(file_path, arcname)
-    print(f"Successfully created {output_zip} from the contents of {release_dir}")
+    print(f"Successfully created {output_zip}")
 
 if __name__ == "__main__":
-    main_cpp = 'src/main.cpp'
-    version_txt = '../version.txt'
-    release_folder = 'release'
-    zip_name = '../game.zip'
-
-    current_version = get_current_version(main_cpp)
-    print(f"Current version: {current_version}")
+    version_txt = '../version.txt' # Path for GitHub Pages
+    release_folder = 'release'      # Path where game.exe and Assets/ live
+    zip_name = '../game.zip'        # Path for GitHub Pages download
 
     new_version = input("Enter new version number: ").strip()
     
     if new_version:
-        update_version(new_version, main_cpp, version_txt)
+        update_version_files(new_version, version_txt, release_folder)
         zip_release(release_folder, zip_name)
     else:
-        print("Operation aborted. No version entered.")
+        print("Operation aborted.")
