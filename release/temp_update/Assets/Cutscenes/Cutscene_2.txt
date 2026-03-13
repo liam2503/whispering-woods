@@ -1,7 +1,0 @@
-// SCENE 2:
-Message Kao(Crow) You've done well! Hope you've enjoyed the berries.
-Message Kao(Crow) See those flowers up above?
-Message Kao(Crow) Use them to restore your friend's power.
-Message Familiar(Fairy) That way I won't run out of mana!
-Message Kao(Crow) Now let's get out of this cave, shall we?
-Message Familiar(Fairy) I'll be right here with you!
