@@ -65,22 +65,13 @@ ifeq ($(OS), Darwin)
 	@echo '</dict></plist>' >> $(RELEASE_DIR)/game.app/Contents/Info.plist
 else
 	$(CXX) $(OBJECTS) -o $(RELEASE_DIR)/game$(EXE_EXT) $(RELEASE_LDFLAGS)
-	cp $(SFML_PATH)/bin/sfml-graphics-2.dll $(RELEASE_DIR)/
-	cp $(SFML_PATH)/bin/sfml-window-2.dll $(RELEASE_DIR)/
-	cp $(SFML_PATH)/bin/sfml-audio-2.dll $(RELEASE_DIR)/
-	cp $(SFML_PATH)/bin/sfml-system-2.dll $(RELEASE_DIR)/
-	cp $(SFML_PATH)/bin/openal32.dll $(RELEASE_DIR)/
-	cp $(CPR_PATH)/bin/libcpr-1.dll $(RELEASE_DIR)/
-	cp $(CPR_PATH)/bin/libcurl-4.dll $(RELEASE_DIR)/
-	cp $(CPR_PATH)/bin/zlib1.dll $(RELEASE_DIR)/
-	cp $(CPR_PATH)/bin/libbrotlidec.dll $(RELEASE_DIR)/
-	cp $(CPR_PATH)/bin/libidn2-0.dll $(RELEASE_DIR)/
-	cp $(CPR_PATH)/bin/libnghttp2-14.dll $(RELEASE_DIR)/
-	cp $(CPR_PATH)/bin/libnghttp3-9.dll $(RELEASE_DIR)/
-	cp $(CPR_PATH)/bin/libngtcp2-16.dll $(RELEASE_DIR)/
-	cp $(CPR_PATH)/bin/libngtcp2_crypto_ossl-0.dll $(RELEASE_DIR)/
-	cp $(CPR_PATH)/bin/libpsl-5.dll $(RELEASE_DIR)/
-	cp $(CPR_PATH)/bin/libssh2-1.dll $(RELEASE_DIR)/
+	@echo "Bundling DLLs..."
+	@for dll in $$(ldd $(RELEASE_DIR)/game$(EXE_EXT) | grep -i "mingw64/bin" | awk '{print $$3}'); do \
+		cp -n "$$dll" $(RELEASE_DIR)/; \
+	done
+
+	cp -n $(SFML_PATH)/bin/*.dll $(RELEASE_DIR)/ 2>/dev/null || :
+	
 	cp -r Assets $(RELEASE_DIR)/
 endif
 
