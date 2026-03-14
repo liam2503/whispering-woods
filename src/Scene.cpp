@@ -33,12 +33,12 @@ const std::map<std::string, std::string> &Scene::getActionMap() const
 
 size_t Scene::width() const
 {
-    return 1280;
+    return (size_t)m_pGame->getInternalResolution().x;
 }
 
 size_t Scene::height() const
 {
-    return 720;
+    return (size_t)m_pGame->getInternalResolution().y;
 }
 
 size_t Scene::currentFrame() const

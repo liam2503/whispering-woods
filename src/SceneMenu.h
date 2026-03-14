@@ -22,6 +22,7 @@ public:
         START_GAME,
         OPTIONS_MAIN,
         OPTIONS_GAME,
+        OPTIONS_VIDEO,
         OPTIONS_AUDIO,
         OPTIONS_CONTROLLER,
         OPTIONS_REMAP_KEYBOARD,
@@ -96,6 +97,11 @@ private:
     int m_nMusicVolume = 100;
     int m_nSFXVolume = 100;
     int m_nVoiceVolume = 100;
+
+    // --- Video Settings Data ---
+    std::vector<sf::Vector2f> m_vecResolutions = {{1280, 720}};
+    size_t m_nSelectedResolution = 1;
+    bool m_bSelectedFullscreen = false;
 
     // --- Remapping State ---
     bool m_bWaitingForInput = false;

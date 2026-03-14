@@ -1,24 +1,33 @@
 OS := $(shell uname -s)
 
 ifeq ($(OS), Darwin)
-BREW_PREFIX := $(shell brew --prefix)
-SFML_PATH = $(BREW_PREFIX)/Cellar/sfml@2/2.6.2_1
-CPR_PATH = $(BREW_PREFIX)/opt/cpr
-EXE_EXT = 
-CXX = clang++
-LDFLAGS = -L$(SFML_PATH)/lib -L$(CPR_PATH)/lib -lsfml-graphics -lsfml-window -lsfml-system -lsfml-audio -lsfml-network -lcpr -lcurl
-RELEASE_LDFLAGS = $(LDFLAGS)
-CXXFLAGS = -std=c++17 -g -I$(SFML_PATH)/include -I$(CPR_PATH)/include -I$(SRC_DIR) -MMD -MP
-RELEASE_CXXFLAGS = -std=c++17 -O3 -I$(SFML_PATH)/include -I$(CPR_PATH)/include -I$(SRC_DIR) -MMD -MP
+    BREW_PREFIX := $(shell brew --prefix)
+    SFML_PATH = $(BREW_PREFIX)/Cellar/sfml@2/2.6.2_1
+    CPR_PATH = $(BREW_PREFIX)/opt/cpr
+    EXE_EXT = 
+    CXX = clang++
+    LDFLAGS = -L$(SFML_PATH)/lib -L$(CPR_PATH)/lib -lsfml-graphics -lsfml-window -lsfml-system -lsfml-audio -lsfml-network -lcpr -lcurl
+    RELEASE_LDFLAGS = $(LDFLAGS)
+    CXXFLAGS = -std=c++17 -g -I$(SFML_PATH)/include -I$(CPR_PATH)/include -I$(SRC_DIR) -MMD -MP
+    RELEASE_CXXFLAGS = -std=c++17 -O3 -I$(SFML_PATH)/include -I$(CPR_PATH)/include -I$(SRC_DIR) -MMD -MP
 else
-SFML_PATH = C:/SFML-2.6.2
-CPR_PATH = C:/msys64/mingw64
-EXE_EXT = .exe
-CXX = g++
-LDFLAGS = -L$(SFML_PATH)/lib -L$(CPR_PATH)/lib -lsfml-graphics -lsfml-window -lsfml-system -lsfml-audio -lsfml-network -lcpr -lcurl
-RELEASE_LDFLAGS = $(LDFLAGS) -mwindows -static-libgcc -static-libstdc++
-CXXFLAGS = -std=c++17 -g -I$(SFML_PATH)/include -I$(CPR_PATH)/include -I$(SRC_DIR) -MMD -MP
-RELEASE_CXXFLAGS = -std=c++17 -O3 -I$(SFML_PATH)/include -I$(CPR_PATH)/include -I$(SRC_DIR) -MMD -MP
+    # WINDOWS CONFIGURATION
+    SFML_PATH = C:/SFML-2.6.2
+    CPR_PATH = C:/msys64/mingw64
+    EXE_EXT = .exe
+    CXX = g++
+
+    # HYBRID LINKING: SFML and C++ Standard Lib are static. CPR/Curl are dynamic.
+    LDFLAGS = -L$(SFML_PATH)/lib -L$(CPR_PATH)/lib \
+        -lsfml-graphics-s -lsfml-window-s -lsfml-audio-s -lsfml-network-s -lsfml-system-s \
+        -lcpr -lcurl \
+        -lfreetype -lpng -lz -lbz2 \
+        -lopenal32 -lflac -lvorbisenc -lvorbisfile -lvorbis -logg \
+        -lws2_32 -lwinmm -lgdi32 -lopengl32 -lcrypt32
+	RELEASE_LDFLAGS = $(LDFLAGS) -mwindows -static-libgcc -static-libstdc++ -lpthread
+
+    CXXFLAGS = -std=c++17 -g -DSFML_STATIC -I$(SFML_PATH)/include -I$(CPR_PATH)/include -I$(SRC_DIR) -MMD -MP
+    RELEASE_CXXFLAGS = -std=c++17 -O3 -DSFML_STATIC -I$(SFML_PATH)/include -I$(CPR_PATH)/include -I$(SRC_DIR) -MMD -MP
 endif
 
 SRC_DIR = src
@@ -65,14 +74,14 @@ ifeq ($(OS), Darwin)
 	@echo '</dict></plist>' >> $(RELEASE_DIR)/game.app/Contents/Info.plist
 else
 	$(CXX) $(OBJECTS) -o $(RELEASE_DIR)/game$(EXE_EXT) $(RELEASE_LDFLAGS)
-	@echo "Bundling DLLs..."
+	
+	@echo "Automating DLL bundle for CPR/Curl..."
 	@for dll in $$(ldd $(RELEASE_DIR)/game$(EXE_EXT) | grep -i "mingw64/bin" | awk '{print $$3}'); do \
 		cp -n "$$dll" $(RELEASE_DIR)/; \
 	done
-
-	cp -n $(SFML_PATH)/bin/*.dll $(RELEASE_DIR)/ 2>/dev/null || :
 	
 	cp -r Assets $(RELEASE_DIR)/
+	@echo "Build Complete! Release folder is ready."
 endif
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp

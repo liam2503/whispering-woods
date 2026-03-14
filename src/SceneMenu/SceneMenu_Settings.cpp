@@ -42,6 +42,24 @@ void SceneMenu::loadSettings()
                 {
                     m_pGame->setControllerButton(key.substr(4), std::stoi(value));
                 }
+                else if (key == "InternalResX")
+                {
+                    float rx = std::stof(value);
+                    for (size_t i = 0; i < m_vecResolutions.size(); i++) {
+                        if (m_vecResolutions[i].x == rx) m_nSelectedResolution = i;
+                    }
+                    m_pGame->setInternalResolution(rx, m_vecResolutions[m_nSelectedResolution].y);
+                }
+                else if (key == "InternalResY")
+                {
+                    m_pGame->setInternalResolution(m_vecResolutions[m_nSelectedResolution].x, std::stof(value));
+                }
+                else if (key == "Fullscreen")
+                {
+                    m_bSelectedFullscreen = (std::stoi(value) != 0);
+                    m_pGame->setFullscreen(m_bSelectedFullscreen);
+                    m_pGame->applyVideoSettings();
+                }
             }
             catch (...)
             {
@@ -115,6 +133,11 @@ void SceneMenu::saveSettings()
         {
             outfile << level << "\n";
         }
+
+        // Save Resolution Settings
+        outfile << "InternalResX," << m_vecResolutions[m_nSelectedResolution].x << "\n";
+        outfile << "InternalResY," << m_vecResolutions[m_nSelectedResolution].y << "\n";
+        outfile << "Fullscreen," << m_bSelectedFullscreen << "\n";
 
         std::cout << "Settings saved to save.csv\n";
     }

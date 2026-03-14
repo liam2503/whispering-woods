@@ -16,5 +16,6 @@ BTN_MELEE,0
 BTN_BOOMERANG,3
 BTN_SELECT,0
 BTN_CANCEL,1
-Assets/Levels/2 - Green Fields.txt
-BoomerangUnlocked,1
+InternalResX,1280
+InternalResY,720
+Fullscreen,1

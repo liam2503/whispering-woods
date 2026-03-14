@@ -5,7 +5,7 @@
 
 void SceneMenu::sysRender()
 {
-    sf::View view(sf::FloatRect(0.f, 0.f, 1280.f, 720.f));
+    sf::View view(sf::FloatRect(0.f, 0.f, (float)width(), (float)height()));
     view.setViewport(m_pGame->getViewport());
     m_pGame->window().setView(view);
 
@@ -46,6 +46,8 @@ void SceneMenu::sysRender()
         subTitle = "Controller Settings";
     else if (m_currentState == OPTIONS_REMAP_KEYBOARD)
         subTitle = "Key Bindings";
+    else if (m_currentState == OPTIONS_VIDEO)
+        subTitle = "Video Settings";
 
     if (!subTitle.empty())
 {
@@ -56,7 +58,7 @@ void SceneMenu::sysRender()
 
     // Render Menu Options
     const auto &currentMenu = m_mapMenuOptions.at(m_currentState);
-    float startY = (m_currentState == MAIN_MENU) ? 275.0f : 350.0f;
+    float startY = (m_currentState == MAIN_MENU) ? 275.0f : 315.0f;
     float verticalSpacing = (m_currentState == MAIN_MENU) ? 65.0f : 50.0f;
     if (m_currentState == OPTIONS_REMAP_KEYBOARD)
     {
@@ -92,6 +94,16 @@ void SceneMenu::sysRender()
         {
             std::string status = m_pGame->getSwapABXY() ? "ON" : "OFF";
             optionText = "Swap A/B & X/Y: < " + status + " >";
+        }
+        else if (m_currentState == OPTIONS_VIDEO && optionText.find("Resolution:") != std::string::npos)
+        {
+            std::string resStr = std::to_string((int)m_vecResolutions[m_nSelectedResolution].x) + "x" + std::to_string((int)m_vecResolutions[m_nSelectedResolution].y);
+            optionText = "Resolution: < " + resStr + " >";
+        }
+        else if (m_currentState == OPTIONS_VIDEO && optionText.find("Fullscreen:") != std::string::npos)
+        {
+            std::string fsStr = m_bSelectedFullscreen ? "ON" : "OFF";
+            optionText = "Fullscreen: < " + fsStr + " >";
         }
 
         m_menuText.setString(optionText);

@@ -168,7 +168,8 @@ void ScenePlay::init(const std::string &a_strLevelPath)
 
 sf::View ScenePlay::buildPlayerView(Entity *player)
 {
-    sf::View view(sf::FloatRect(0.f, 0.f, 1280.f, 720.f));
+    sf::View view(sf::FloatRect(0.f, 0.f, (float)width(), (float)height()));
+    
     sf::FloatRect lb = m_pGame->getViewport();
     sf::Vector2f viewSize = view.getSize();
 

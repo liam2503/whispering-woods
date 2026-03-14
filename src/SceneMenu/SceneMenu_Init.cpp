@@ -19,17 +19,14 @@ SceneMenu::SceneMenu(GameEngine *game)
 
 void SceneMenu::init()
 {
-    // Initialize all sub-systems of the menu
-    initAssets();
     loadSettings();
+    initAssets();
     initActions();
     loadLevelList();
     loadMenuConfigurations();
 
-    // Initialize Animation Timer
     m_fPulseTimer = 0.0f;
 
-    // Start music
     m_pGame->updateMusicVolume(m_nMusicVolume);
     m_pGame->setSFXVolume(m_nSFXVolume);
     m_pGame->setVoiceVolume(m_nVoiceVolume);
@@ -213,8 +210,15 @@ void SceneMenu::loadMenuConfigurations()
 
     m_mapMenuOptions[OPTIONS_MAIN] = {
         {"Game Settings", "OPTIONS_GAME"},
+        {"Video Settings", "OPTIONS_VIDEO"},
         {"Audio Settings", "OPTIONS_AUDIO"},
         {"Controller Settings", "OPTIONS_CONTROLLER"},
+        {"Return", "BACK"}};
+
+        m_mapMenuOptions[OPTIONS_VIDEO] = {
+        {"Resolution:", "CYCLE_RES"},
+        {"Fullscreen:", "TOGGLE_FULLSCREEN"},
+        {"Apply", "APPLY_VIDEO"},
         {"Return", "BACK"}};
 
     m_mapMenuOptions[OPTIONS_GAME] = {

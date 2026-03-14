@@ -2,24 +2,33 @@
 OS := $(shell uname -s)
 
 ifeq ($(OS), Darwin)
-BREW_PREFIX := $(shell brew --prefix)
-SFML_PATH = $(BREW_PREFIX)/Cellar/sfml@2/2.6.2_1
-CPR_PATH = $(BREW_PREFIX)/opt/cpr
-EXE_EXT = 
-CXX = clang++
-LDFLAGS = -L$(SFML_PATH)/lib -L$(CPR_PATH)/lib -lsfml-graphics -lsfml-window -lsfml-system -lsfml-audio -lsfml-network -lcpr -lcurl
-RELEASE_LDFLAGS = $(LDFLAGS)
-CXXFLAGS = -std=c++17 -g -I$(SFML_PATH)/include -I$(CPR_PATH)/include -I$(SRC_DIR) -MMD -MP
-RELEASE_CXXFLAGS = -std=c++17 -O3 -I$(SFML_PATH)/include -I$(CPR_PATH)/include -I$(SRC_DIR) -MMD -MP
+    BREW_PREFIX := $(shell brew --prefix)
+    SFML_PATH = $(BREW_PREFIX)/Cellar/sfml@2/2.6.2_1
+    CPR_PATH = $(BREW_PREFIX)/opt/cpr
+    EXE_EXT = 
+    CXX = clang++
+    LDFLAGS = -L$(SFML_PATH)/lib -L$(CPR_PATH)/lib -lsfml-graphics -lsfml-window -lsfml-system -lsfml-audio -lsfml-network -lcpr -lcurl
+    RELEASE_LDFLAGS = $(LDFLAGS)
+    CXXFLAGS = -std=c++17 -g -I$(SFML_PATH)/include -I$(CPR_PATH)/include -I$(SRC_DIR) -MMD -MP
+    RELEASE_CXXFLAGS = -std=c++17 -O3 -I$(SFML_PATH)/include -I$(CPR_PATH)/include -I$(SRC_DIR) -MMD -MP
 else
-SFML_PATH = C:/SFML-2.6.2
-CPR_PATH = C:/msys64/mingw64
-EXE_EXT = .exe
-CXX = g++
-LDFLAGS = -L$(SFML_PATH)/lib -L$(CPR_PATH)/lib -lsfml-graphics -lsfml-window -lsfml-system -lsfml-audio -lsfml-network -lcpr -lcurl
-RELEASE_LDFLAGS = $(LDFLAGS) -mwindows -static-libgcc -static-libstdc++
-CXXFLAGS = -std=c++17 -g -I$(SFML_PATH)/include -I$(CPR_PATH)/include -I$(SRC_DIR) -MMD -MP
-RELEASE_CXXFLAGS = -std=c++17 -O3 -I$(SFML_PATH)/include -I$(CPR_PATH)/include -I$(SRC_DIR) -MMD -MP
+    # WINDOWS CONFIGURATION
+    SFML_PATH = C:/SFML-2.6.2
+    CPR_PATH = C:/msys64/mingw64
+    EXE_EXT = .exe
+    CXX = g++
+
+    # HYBRID LINKING: SFML and C++ Standard Lib are static. CPR/Curl are dynamic.
+    LDFLAGS = -L$(SFML_PATH)/lib -L$(CPR_PATH)/lib \
+        -lsfml-graphics-s -lsfml-window-s -lsfml-audio-s -lsfml-network-s -lsfml-system-s \
+        -lcpr -lcurl \
+        -lfreetype -lpng -lz -lbz2 \
+        -lopenal32 -lflac -lvorbisenc -lvorbisfile -lvorbis -logg \
+        -lws2_32 -lwinmm -lgdi32 -lopengl32 -lcrypt32
+	RELEASE_LDFLAGS = $(LDFLAGS) -mwindows -static-libgcc -static-libstdc++ -lpthread
+
+    CXXFLAGS = -std=c++17 -g -DSFML_STATIC -I$(SFML_PATH)/include -I$(CPR_PATH)/include -I$(SRC_DIR) -MMD -MP
+    RELEASE_CXXFLAGS = -std=c++17 -O3 -DSFML_STATIC -I$(SFML_PATH)/include -I$(CPR_PATH)/include -I$(SRC_DIR) -MMD -MP
 endif
 
 SRC_DIR = src
@@ -66,12 +75,14 @@ ifeq ($(OS), Darwin)
 	@echo '</dict></plist>' >> $(RELEASE_DIR)/game.app/Contents/Info.plist
 else
 	$(CXX) $(OBJECTS) -o $(RELEASE_DIR)/game$(EXE_EXT) $(RELEASE_LDFLAGS)
-	cp $(SFML_PATH)/bin/sfml-graphics-2.dll $(RELEASE_DIR)/
-	cp $(SFML_PATH)/bin/sfml-window-2.dll $(RELEASE_DIR)/
-	cp $(SFML_PATH)/bin/sfml-audio-2.dll $(RELEASE_DIR)/
-	cp $(SFML_PATH)/bin/sfml-system-2.dll $(RELEASE_DIR)/
-	cp $(SFML_PATH)/bin/openal32.dll $(RELEASE_DIR)/
+	
+	@echo "Automating DLL bundle for CPR/Curl..."
+	@for dll in $$(ldd $(RELEASE_DIR)/game$(EXE_EXT) | grep -i "mingw64/bin" | awk '{print $$3}'); do \
+		cp -n "$$dll" $(RELEASE_DIR)/; \
+	done
+	
 	cp -r Assets $(RELEASE_DIR)/
+	@echo "Build Complete! Release folder is ready."
 endif
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
@@ -1160,7 +1171,7 @@ void GameEngine::init(const std::string &a_strPath)
 
 void GameEngine::updateViewport(unsigned int width, unsigned int height)
 {
-    float targetRatio = 1280.0f / 720.0f;
+    float targetRatio = m_vInternalResolution.x / m_vInternalResolution.y;
     float windowRatio = (float)width / (float)height;
     float vWidth = 1.0f, vHeight = 1.0f, vPosX = 0.0f, vPosY = 0.0f;
 
@@ -1712,6 +1723,41 @@ void GameEngine::setLoadingScreen(bool active, const std::string &message)
     m_loadingText.setOrigin(textRect.left + textRect.width / 2.0f,
                             textRect.top + textRect.height / 2.0f);
 }
+
+const sf::Vector2f& GameEngine::getInternalResolution() const
+{
+    return m_vInternalResolution;
+}
+
+void GameEngine::setInternalResolution(float w, float h)
+{
+    m_vInternalResolution = sf::Vector2f(w, h);
+    updateViewport(m_window.getSize().x, m_window.getSize().y);
+}
+
+bool GameEngine::isFullscreen() const
+{
+    return m_bFullscreen;
+}
+
+void GameEngine::setFullscreen(bool fullscreen)
+{
+    m_bFullscreen = fullscreen;
+}
+
+void GameEngine::applyVideoSettings()
+{
+    if (m_bFullscreen)
+    {
+        m_window.create(sf::VideoMode::getDesktopMode(), "The Whispering Wood", sf::Style::Fullscreen);
+    }
+    else
+    {
+        m_window.create(sf::VideoMode(1280, 720), "The Whispering Wood", sf::Style::Default);
+    }
+    m_window.setFramerateLimit(60);
+    updateViewport(m_window.getSize().x, m_window.getSize().y);
+}
 ========== END OF .\src\GameEngine.cpp ==========
 
 ========== FILE: .\src\GameEngine.h ==========
@@ -1787,6 +1833,8 @@ protected:
     // --- Viewport Management ---
     sf::FloatRect m_letterboxViewport = { 0.f, 0.f, 1.f, 1.f };
     void updateViewport(unsigned int width, unsigned int height);
+    sf::Vector2f m_vInternalResolution = {1280.f, 720.f};
+    bool m_bFullscreen = false;
 
 public:
     // --- Lifecycle ---
@@ -1832,6 +1880,11 @@ public:
     
     // --- Viewport Management ---
     sf::FloatRect getViewport() const { return m_letterboxViewport; }
+    const sf::Vector2f& getInternalResolution() const;
+    void setInternalResolution(float w, float h);
+    bool isFullscreen() const;
+    void setFullscreen(bool fullscreen);
+    void applyVideoSettings();
 };
 ========== END OF .\src\GameEngine.h ==========
 
@@ -2219,12 +2272,12 @@ const std::map<std::string, std::string> &Scene::getActionMap() const
 
 size_t Scene::width() const
 {
-    return 1280;
+    return (size_t)m_pGame->getInternalResolution().x;
 }
 
 size_t Scene::height() const
 {
-    return 720;
+    return (size_t)m_pGame->getInternalResolution().y;
 }
 
 size_t Scene::currentFrame() const
@@ -2404,6 +2457,7 @@ public:
         START_GAME,
         OPTIONS_MAIN,
         OPTIONS_GAME,
+        OPTIONS_VIDEO,
         OPTIONS_AUDIO,
         OPTIONS_CONTROLLER,
         OPTIONS_REMAP_KEYBOARD,
@@ -2478,6 +2532,11 @@ private:
     int m_nMusicVolume = 100;
     int m_nSFXVolume = 100;
     int m_nVoiceVolume = 100;
+
+    // --- Video Settings Data ---
+    std::vector<sf::Vector2f> m_vecResolutions = {{640, 360}, {1280, 720}, {1920, 1080}, {2560, 1440}};
+    size_t m_nSelectedResolution = 1;
+    bool m_bSelectedFullscreen = false;
 
     // --- Remapping State ---
     bool m_bWaitingForInput = false;
@@ -2690,9 +2749,9 @@ protected:
     void createBullet(const VectorPP &familiarPos, const VectorPP &a_vMousePos);
     void createMeleeAttack();
     void createElementBall(const VectorPP &familiarPos, const VectorPP &a_vMousePos, EntityStatus m_currentElement);
-    void createLeaf(const VectorPP &familiarPos);
+    void createLeaf(const VectorPP &familiarPos, const VectorPP &targetPos);
     void createBossBullet(VectorPP origin, VectorPP target);
-    void spawnBoomerang(Entity *entity);
+    void spawnBoomerang(Entity *entity, const VectorPP &targetPos);
 
     // Helpers
     sf::View buildPlayerView(Entity *player);
@@ -3408,6 +3467,10 @@ m_hudView.setViewport(m_pGame->getViewport());
 
     if (m_cursorLoaded)
     {
+        sf::Vector2i pixelPos((int)m_vMousePos.x, (int)m_vMousePos.y);
+        sf::Vector2f hudCoords = m_pGame->window().mapPixelToCoords(pixelPos, m_hudView);
+        
+        m_cursorSprite.setPosition(hudCoords.x, hudCoords.y);
         m_pGame->window().draw(m_cursorSprite);
     }
 
@@ -3448,15 +3511,17 @@ void SceneEditor::drawChatPopup()
 {
     if (!m_pCurrentChatEntity || !m_pCurrentChatEntity->hasComponent<CompTransform>())
         return;
+
     VectorPP pos = m_pCurrentChatEntity->getComponent<CompTransform>().vPosition;
     sf::Vector2f entityPos((float)pos.x, (float)pos.y);
 
-    sf::Vector2i pixelPos = m_pGame->window().mapCoordsToPixel(entityPos, m_worldView);
+    sf::Vector2i entityPixelPos = m_pGame->window().mapCoordsToPixel(entityPos, m_worldView);
+    sf::Vector2f hudPos = m_pGame->window().mapPixelToCoords(entityPixelPos, m_hudView);
 
     float w = 300.0f;
     float h = 100.0f;
-    float x = pixelPos.x - w / 2.0f;
-    float y = pixelPos.y - h - 50.0f;
+    float x = hudPos.x - w / 2.0f;
+    float y = hudPos.y - h - 50.0f;
 
     sf::RectangleShape bg(sf::Vector2f(w, h));
     bg.setPosition(x, y);
@@ -3614,11 +3679,15 @@ void SceneEditor::sysDoAction(const Action &a_action)
                 VectorPP pos = m_pCurrentChatEntity->getComponent<CompTransform>().vPosition;
                 sf::Vector2f entityPos((float)pos.x, (float)pos.y);
 
-                sf::Vector2i pixelPos = m_pGame->window().mapCoordsToPixel(entityPos, m_worldView);
+                // Map World -> Physical Window Pixels -> Logical HUD Pixels
+                sf::Vector2i entityPixelPos = m_pGame->window().mapCoordsToPixel(entityPos, m_worldView);
+                sf::Vector2f hudPos = m_pGame->window().mapPixelToCoords(entityPixelPos, m_hudView);
+
                 float w = 300.0f;
                 float h = 100.0f;
-                float x = pixelPos.x - w / 2.0f;
-                float y = pixelPos.y - h - 50.0f;
+                float x = hudPos.x - w / 2.0f;
+                float y = hudPos.y - h - 50.0f;
+
                 if (clickPos.x >= x && clickPos.x <= x + w && clickPos.y >= y && clickPos.y <= y + h)
                 {
                     if (clickPos.y > y + 65)
@@ -3743,7 +3812,8 @@ void SceneEditor::sysDoAction(const Action &a_action)
             }
             else
             {
-                VectorPP worldPos = windowToWorld(clickPos);
+                VectorPP worldPos = windowToWorld(m_vMousePos);
+
                 if (m_bEraserMode)
                 {
                     bool deleted = false;
@@ -3944,6 +4014,8 @@ void SceneMenu::navigateMenu(const std::string &action)
             setMenuState(OPTIONS_MAIN);
         else if (m_currentState == OPTIONS_REMAP_KEYBOARD)
             setMenuState(OPTIONS_CONTROLLER);
+        else if (m_currentState == OPTIONS_GAME || m_currentState == OPTIONS_VIDEO || m_currentState == OPTIONS_AUDIO || m_currentState == OPTIONS_CONTROLLER)
+            setMenuState(OPTIONS_MAIN);
         else if (m_currentState == CREDITS_SCREEN || m_currentState == CONTROLS_SCREEN)
             setMenuState(MAIN_MENU);
     }
@@ -4041,6 +4113,15 @@ void SceneMenu::executeMenuAction(const std::string &action)
     {
         m_sRemapAction = action.substr(5);
         m_bWaitingForInput = true;
+    }
+    else if (action == "APPLY_VIDEO")
+    {
+        m_pGame->playSound("apply");
+        m_pGame->setInternalResolution(m_vecResolutions[m_nSelectedResolution].x, m_vecResolutions[m_nSelectedResolution].y);
+        m_pGame->setFullscreen(m_bSelectedFullscreen);
+        m_pGame->applyVideoSettings();
+        saveSettings();
+        navigateMenu("BACK");
     }
     else
     {
@@ -4202,6 +4283,17 @@ void SceneMenu::sysDoAction(const Action &action)
                         m_pGame->setVoiceVolume(m_nVoiceVolume);
                     }
                 }
+            }
+            else if (m_currentState == OPTIONS_VIDEO && currentAction == "CYCLE_RES")
+            {
+                if (action.getName() == "LEFT")
+                    m_nSelectedResolution = (m_nSelectedResolution == 0) ? m_vecResolutions.size() - 1 : m_nSelectedResolution - 1;
+                else
+                    m_nSelectedResolution = (m_nSelectedResolution + 1) % m_vecResolutions.size();
+            }
+            else if (m_currentState == OPTIONS_VIDEO && currentAction == "TOGGLE_FULLSCREEN")
+            {
+                m_bSelectedFullscreen = !m_bSelectedFullscreen;
             }
         }
     }
@@ -4429,8 +4521,15 @@ void SceneMenu::loadMenuConfigurations()
 
     m_mapMenuOptions[OPTIONS_MAIN] = {
         {"Game Settings", "OPTIONS_GAME"},
+        {"Video Settings", "OPTIONS_VIDEO"},
         {"Audio Settings", "OPTIONS_AUDIO"},
         {"Controller Settings", "OPTIONS_CONTROLLER"},
+        {"Return", "BACK"}};
+
+        m_mapMenuOptions[OPTIONS_VIDEO] = {
+        {"Resolution:", "CYCLE_RES"},
+        {"Fullscreen:", "TOGGLE_FULLSCREEN"},
+        {"Apply", "APPLY_VIDEO"},
         {"Return", "BACK"}};
 
     m_mapMenuOptions[OPTIONS_GAME] = {
@@ -4518,6 +4617,8 @@ void SceneMenu::sysRender()
         subTitle = "Controller Settings";
     else if (m_currentState == OPTIONS_REMAP_KEYBOARD)
         subTitle = "Key Bindings";
+    else if (m_currentState == OPTIONS_VIDEO)
+        subTitle = "Video Settings";
 
     if (!subTitle.empty())
 {
@@ -4564,6 +4665,16 @@ void SceneMenu::sysRender()
         {
             std::string status = m_pGame->getSwapABXY() ? "ON" : "OFF";
             optionText = "Swap A/B & X/Y: < " + status + " >";
+        }
+        else if (m_currentState == OPTIONS_VIDEO && optionText.find("Resolution:") != std::string::npos)
+        {
+            std::string resStr = std::to_string((int)m_vecResolutions[m_nSelectedResolution].x) + "x" + std::to_string((int)m_vecResolutions[m_nSelectedResolution].y);
+            optionText = "Resolution: < " + resStr + " >";
+        }
+        else if (m_currentState == OPTIONS_VIDEO && optionText.find("Fullscreen:") != std::string::npos)
+        {
+            std::string fsStr = m_bSelectedFullscreen ? "ON" : "OFF";
+            optionText = "Fullscreen: < " + fsStr + " >";
         }
 
         m_menuText.setString(optionText);
@@ -4672,6 +4783,24 @@ void SceneMenu::loadSettings()
                 {
                     m_pGame->setControllerButton(key.substr(4), std::stoi(value));
                 }
+                else if (key == "InternalResX")
+                {
+                    float rx = std::stof(value);
+                    for (size_t i = 0; i < m_vecResolutions.size(); i++) {
+                        if (m_vecResolutions[i].x == rx) m_nSelectedResolution = i;
+                    }
+                    m_pGame->setInternalResolution(rx, m_vecResolutions[m_nSelectedResolution].y);
+                }
+                else if (key == "InternalResY")
+                {
+                    m_pGame->setInternalResolution(m_vecResolutions[m_nSelectedResolution].x, std::stof(value));
+                }
+                else if (key == "Fullscreen")
+                {
+                    m_bSelectedFullscreen = (std::stoi(value) != 0);
+                    m_pGame->setFullscreen(m_bSelectedFullscreen);
+                    m_pGame->applyVideoSettings();
+                }
             }
             catch (...)
             {
@@ -4745,6 +4874,11 @@ void SceneMenu::saveSettings()
         {
             outfile << level << "\n";
         }
+
+        // Save Resolution Settings
+        outfile << "InternalResX," << m_vecResolutions[m_nSelectedResolution].x << "\n";
+        outfile << "InternalResY," << m_vecResolutions[m_nSelectedResolution].y << "\n";
+        outfile << "Fullscreen," << m_bSelectedFullscreen << "\n";
 
         std::cout << "Settings saved to save.csv\n";
     }
@@ -4998,7 +5132,18 @@ void ScenePlay::sysDoAction(const Action &a_action)
             if (m_bBoomerangUnlocked && m_player->getComponent<CompState>().state != EntityState::BURROWING &&
                 m_entityManager.getEntities("leaf").empty())
             {
-                spawnBoomerang(m_player);
+                VectorPP finalTarget;
+                if (m_pGame->isUsingController())
+                    finalTarget = familiarPosition + (m_lastAimDirection * 1000.0f);
+                else
+                {
+                    sf::View pView = buildPlayerView(m_player);
+                    sf::Vector2i pixel((int)m_vMousePos.x, (int)m_vMousePos.y);
+                    sf::Vector2f world = m_pGame->window().mapPixelToCoords(pixel, pView);
+                    finalTarget = VectorPP(world.x, world.y);
+                }
+
+                spawnBoomerang(m_player, finalTarget);
                 m_pGame->playSound("familiar_shoot");
             }
         }
@@ -5113,7 +5258,7 @@ void ScenePlay::sysDoAction(const Action &a_action)
                     {
                         if (m_player->getComponent<CompMana>().currentMana >= std::max(1, (int)std::ceil(5 * m_manaCostMult)))
                         {
-                            createLeaf(particles.getEmitter());
+                            createLeaf(particles.getEmitter(), finalTarget);
                             m_pGame->playSound("familiar_shoot");
                             m_player->getComponent<CompMana>().currentMana -= std::max(1, (int)std::ceil(5 * m_manaCostMult));
                         }
@@ -7593,29 +7738,29 @@ void ScenePlay::createElementBall(const VectorPP &familiarPos, const VectorPP &a
     bullet->addComponents<CompBoundingBox>(VectorPP(8, 8));
 }
 
-void ScenePlay::createLeaf(const VectorPP &familiarPos)
+void ScenePlay::createLeaf(const VectorPP &familiarPos, const VectorPP &targetPos)
 {
     Entity *leaf = m_entityManager.addEntity("leaf");
 
-    float direction = (m_player->getComponent<CompTransform>().vScale.x > 0)
-                          ? 1.0f
-                          : -1.0f;
-
-    VectorPP dir(direction, -0.6f);
-
+    VectorPP dir = targetPos - familiarPos;
     float len = std::sqrt(dir.x * dir.x + dir.y * dir.y);
     if (len != 0.0f)
     {
         dir.x /= len;
         dir.y /= len;
     }
+    else
+    {
+        
+        float direction = (m_player->getComponent<CompTransform>().vScale.x > 0) ? 1.0f : -1.0f;
+        dir = VectorPP(direction, 0.0f);
+    }
 
     leaf->addComponents<CompAnimation>(
-        m_pGame->getAssets().getAnimation("Boomerang"),
-        true);
+        m_pGame->getAssets().getAnimation("Boomerang"), true);
 
     const float speed = 10.0f;
-    const float maxDist = 250.0f;
+    const float maxDist = 400.0f;
 
     leaf->addComponents<CompTransform>(
         familiarPos,
@@ -7629,6 +7774,15 @@ void ScenePlay::createLeaf(const VectorPP &familiarPos)
     auto &boomer = leaf->addComponents<CompBoomerang>();
     boomer.totalDistance = 0.0f;
     boomer.returning = false;
+}
+
+void ScenePlay::spawnBoomerang(Entity *entity, const VectorPP &targetPos)
+{
+    if (m_bBoomerangUnlocked)
+    {
+        VectorPP origin = entity->getComponent<CompTransform>().vPosition;
+        createLeaf(origin, targetPos);
+    }
 }
 
 void ScenePlay::createBullet(const VectorPP &familiarPos, const VectorPP &a_vMousePos)
@@ -7719,18 +7873,6 @@ void ScenePlay::createBossBullet(VectorPP origin, VectorPP target)
     float speed = 7.0f;
     bullet->getComponent<CompTransform>().vVelocity = VectorPP(velocity.x * speed, velocity.y * speed);
 }
-
-void ScenePlay::spawnBoomerang(Entity *entity)
-{
-
-    if (m_bBoomerangUnlocked)
-    {
-        VectorPP origin = entity->getComponent<CompTransform>().vPosition;
-
-        createLeaf(origin);
-    }
-}
-
 ========== END OF .\src\ScenePlay\ScenePlay_player.cpp ==========
 
 ========== FILE: .\src\ScenePlay\ScenePlay_Render.cpp ==========
@@ -7824,13 +7966,16 @@ void ScenePlay::sysRender()
         }
     }
 
-    // Minimap
+// Minimap
     sf::View minimapView;
-    sf::Vector2u windowSize = m_pGame->window().getSize();
+    
+    float logicalW = (float)width(); 
+    float logicalH = (float)height();
+    
     float zoomFactor = 2.0f;
     float heightRatio = 0.7f;
-    minimapView.setSize(windowSize.x * zoomFactor, windowSize.y * zoomFactor * heightRatio);
-    
+    minimapView.setSize(logicalW * zoomFactor, logicalH * zoomFactor * heightRatio);
+
     if (m_player)
     {
         auto &pPos = m_player->getComponent<CompTransform>().vPosition;
@@ -7841,14 +7986,13 @@ void ScenePlay::sysRender()
         minimapView.setCenter(centerX, centerY);
     }
 
-    // Minimap nested viewport calculation
     sf::FloatRect lb = m_pGame->getViewport();
     minimapView.setViewport(sf::FloatRect(lb.left + lb.width * 0.75f, lb.top, lb.width * 0.25f, lb.height * 0.25f * heightRatio));
     m_pGame->window().setView(minimapView);
 
     sf::RectangleShape mmBg;
-    mmBg.setSize(sf::Vector2f(windowSize.x * zoomFactor, windowSize.y * zoomFactor * heightRatio));
-    mmBg.setOrigin(windowSize.x * zoomFactor / 2.0f, (windowSize.y * zoomFactor * heightRatio) / 2.0f);
+    mmBg.setSize(sf::Vector2f(logicalW * zoomFactor, logicalH * zoomFactor * heightRatio));
+    mmBg.setOrigin((logicalW * zoomFactor) / 2.0f, (logicalH * zoomFactor * heightRatio) / 2.0f);
     mmBg.setPosition(minimapView.getCenter());
     mmBg.setFillColor(sf::Color(0, 0, 0, 150));
     m_pGame->window().draw(mmBg);

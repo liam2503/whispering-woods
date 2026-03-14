@@ -88,13 +88,16 @@ void ScenePlay::sysRender()
         }
     }
 
-    // Minimap
+// Minimap
     sf::View minimapView;
-    sf::Vector2u windowSize = m_pGame->window().getSize();
+    
+    float logicalW = (float)width(); 
+    float logicalH = (float)height();
+    
     float zoomFactor = 2.0f;
     float heightRatio = 0.7f;
-    minimapView.setSize(windowSize.x * zoomFactor, windowSize.y * zoomFactor * heightRatio);
-    
+    minimapView.setSize(logicalW * zoomFactor, logicalH * zoomFactor * heightRatio);
+
     if (m_player)
     {
         auto &pPos = m_player->getComponent<CompTransform>().vPosition;
@@ -105,14 +108,13 @@ void ScenePlay::sysRender()
         minimapView.setCenter(centerX, centerY);
     }
 
-    // Minimap nested viewport calculation
     sf::FloatRect lb = m_pGame->getViewport();
     minimapView.setViewport(sf::FloatRect(lb.left + lb.width * 0.75f, lb.top, lb.width * 0.25f, lb.height * 0.25f * heightRatio));
     m_pGame->window().setView(minimapView);
 
     sf::RectangleShape mmBg;
-    mmBg.setSize(sf::Vector2f(windowSize.x * zoomFactor, windowSize.y * zoomFactor * heightRatio));
-    mmBg.setOrigin(windowSize.x * zoomFactor / 2.0f, (windowSize.y * zoomFactor * heightRatio) / 2.0f);
+    mmBg.setSize(sf::Vector2f(logicalW * zoomFactor, logicalH * zoomFactor * heightRatio));
+    mmBg.setOrigin((logicalW * zoomFactor) / 2.0f, (logicalH * zoomFactor * heightRatio) / 2.0f);
     mmBg.setPosition(minimapView.getCenter());
     mmBg.setFillColor(sf::Color(0, 0, 0, 150));
     m_pGame->window().draw(mmBg);
@@ -223,7 +225,7 @@ void ScenePlay::sysRender()
 
     if (m_bDrawPlayerHUD)
     {
-        sf::View hudView(sf::FloatRect(0.f, 0.f, 1280.f, 720.f));
+        sf::View hudView(sf::FloatRect(0.f, 0.f, (float)width(), (float)height()));
         hudView.setViewport(m_pGame->getViewport());
         m_pGame->window().setView(hudView);
 
@@ -353,13 +355,13 @@ void ScenePlay::sysRender()
     }
 
     // Game Over / Fade Overlays
-    sf::View overlayView(sf::FloatRect(0.f, 0.f, 1280.f, 720.f));
+    sf::View overlayView(sf::FloatRect(0.f, 0.f, (float)width(), (float)height()));
     overlayView.setViewport(m_pGame->getViewport());
     m_pGame->window().setView(overlayView);
     
     if (m_bShowGameOver || m_bShowEndScreen)
     {
-        sf::RectangleShape darkenOverlay(sf::Vector2f(1280.f, 720.f));
+        sf::RectangleShape darkenOverlay(sf::Vector2f((float)width(), (float)height()));
         float darkenProgress = (m_fScreenFadeAlpha / 255.0f);
         sf::Uint8 darkenAlpha = static_cast<sf::Uint8>(180 * darkenProgress);
         darkenOverlay.setFillColor(sf::Color(0, 0, 0, darkenAlpha));

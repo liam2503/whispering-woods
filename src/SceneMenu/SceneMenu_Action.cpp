@@ -45,6 +45,8 @@ void SceneMenu::navigateMenu(const std::string &action)
             setMenuState(OPTIONS_MAIN);
         else if (m_currentState == OPTIONS_REMAP_KEYBOARD)
             setMenuState(OPTIONS_CONTROLLER);
+        else if (m_currentState == OPTIONS_GAME || m_currentState == OPTIONS_VIDEO || m_currentState == OPTIONS_AUDIO || m_currentState == OPTIONS_CONTROLLER)
+            setMenuState(OPTIONS_MAIN);
         else if (m_currentState == CREDITS_SCREEN || m_currentState == CONTROLS_SCREEN)
             setMenuState(MAIN_MENU);
     }
@@ -61,6 +63,16 @@ void SceneMenu::navigateMenu(const std::string &action)
     else if (action == "OPTIONS_GAME")
     {
         setMenuState(OPTIONS_GAME);
+        m_pGame->playSound("ui");
+    }
+    else if (action == "OPTIONS_GAME")
+    {
+        setMenuState(OPTIONS_GAME);
+        m_pGame->playSound("ui");
+    }
+    else if (action == "OPTIONS_VIDEO")
+    {
+        setMenuState(OPTIONS_VIDEO);
         m_pGame->playSound("ui");
     }
     else if (action == "OPTIONS_AUDIO")
@@ -142,6 +154,16 @@ void SceneMenu::executeMenuAction(const std::string &action)
     {
         m_sRemapAction = action.substr(5);
         m_bWaitingForInput = true;
+    }
+    else if (action == "APPLY_VIDEO")
+    {
+        m_pGame->playSound("apply");
+        m_pGame->setInternalResolution(m_vecResolutions[m_nSelectedResolution].x, m_vecResolutions[m_nSelectedResolution].y);
+        m_pGame->setFullscreen(m_bSelectedFullscreen);
+        m_pGame->applyVideoSettings();
+        saveSettings();
+        initAssets();
+        navigateMenu("BACK");
     }
     else
     {
@@ -303,6 +325,17 @@ void SceneMenu::sysDoAction(const Action &action)
                         m_pGame->setVoiceVolume(m_nVoiceVolume);
                     }
                 }
+            }
+            else if (m_currentState == OPTIONS_VIDEO && currentAction == "CYCLE_RES")
+            {
+                if (action.getName() == "LEFT")
+                    m_nSelectedResolution = (m_nSelectedResolution == 0) ? m_vecResolutions.size() - 1 : m_nSelectedResolution - 1;
+                else
+                    m_nSelectedResolution = (m_nSelectedResolution + 1) % m_vecResolutions.size();
+            }
+            else if (m_currentState == OPTIONS_VIDEO && currentAction == "TOGGLE_FULLSCREEN")
+            {
+                m_bSelectedFullscreen = !m_bSelectedFullscreen;
             }
         }
     }

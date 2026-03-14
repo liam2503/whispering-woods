@@ -87,7 +87,7 @@ void GameEngine::init(const std::string &a_strPath)
 
 void GameEngine::updateViewport(unsigned int width, unsigned int height)
 {
-    float targetRatio = 1280.0f / 720.0f;
+    float targetRatio = m_vInternalResolution.x / m_vInternalResolution.y;
     float windowRatio = (float)width / (float)height;
     float vWidth = 1.0f, vHeight = 1.0f, vPosX = 0.0f, vPosY = 0.0f;
 
@@ -638,4 +638,39 @@ void GameEngine::setLoadingScreen(bool active, const std::string &message)
     sf::FloatRect textRect = m_loadingText.getLocalBounds();
     m_loadingText.setOrigin(textRect.left + textRect.width / 2.0f,
                             textRect.top + textRect.height / 2.0f);
+}
+
+const sf::Vector2f& GameEngine::getInternalResolution() const
+{
+    return m_vInternalResolution;
+}
+
+void GameEngine::setInternalResolution(float w, float h)
+{
+    m_vInternalResolution = sf::Vector2f(w, h);
+    updateViewport(m_window.getSize().x, m_window.getSize().y);
+}
+
+bool GameEngine::isFullscreen() const
+{
+    return m_bFullscreen;
+}
+
+void GameEngine::setFullscreen(bool fullscreen)
+{
+    m_bFullscreen = fullscreen;
+}
+
+void GameEngine::applyVideoSettings()
+{
+    if (m_bFullscreen)
+    {
+        m_window.create(sf::VideoMode::getDesktopMode(), "The Whispering Wood", sf::Style::Fullscreen);
+    }
+    else
+    {
+        m_window.create(sf::VideoMode(1280, 720), "The Whispering Wood", sf::Style::Default);
+    }
+    m_window.setFramerateLimit(60);
+    updateViewport(m_window.getSize().x, m_window.getSize().y);
 }

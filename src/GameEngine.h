@@ -70,6 +70,8 @@ protected:
     // --- Viewport Management ---
     sf::FloatRect m_letterboxViewport = { 0.f, 0.f, 1.f, 1.f };
     void updateViewport(unsigned int width, unsigned int height);
+    sf::Vector2f m_vInternalResolution = {1280.f, 720.f};
+    bool m_bFullscreen = false;
 
 public:
     // --- Lifecycle ---
@@ -115,4 +117,9 @@ public:
     
     // --- Viewport Management ---
     sf::FloatRect getViewport() const { return m_letterboxViewport; }
+    const sf::Vector2f& getInternalResolution() const;
+    void setInternalResolution(float w, float h);
+    bool isFullscreen() const;
+    void setFullscreen(bool fullscreen);
+    void applyVideoSettings();
 };
