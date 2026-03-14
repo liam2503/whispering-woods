@@ -4,6 +4,7 @@
 #include <string>
 #include <filesystem>
 #include <algorithm>
+#include <chrono> 
 #include <cpr/cpr.h>
 #include "GameEngine.h"
 
@@ -18,13 +19,19 @@ std::string getLocalVersion()
     return "0.0";
 }
 
+
 bool checkForUpdates(const std::string& currentVersion) 
 {
-    cpr::Response r = cpr::Get(cpr::Url{"https://liam2503.github.io/version.txt"});
+    auto now = std::chrono::system_clock::now().time_since_epoch().count();
+    std::string url = "https://liam2503.github.io/version.txt?t=" + std::to_string(now);
+
+    cpr::Response r = cpr::Get(cpr::Url{url});
     if (r.status_code != 200) return false;
 
     std::string serverVersion = r.text;
-    serverVersion.erase(serverVersion.find_last_not_of(" \n\r\t") + 1);
+    
+    serverVersion.erase(0, serverVersion.find_first_not_of(" \n\r\t\0"));
+    serverVersion.erase(serverVersion.find_last_not_of(" \n\r\t\0") + 1);
     
     return (serverVersion != currentVersion);
 }
