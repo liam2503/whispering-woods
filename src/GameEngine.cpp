@@ -359,16 +359,21 @@ sf::RenderWindow &GameEngine::window() { return m_window; }
 const Assets &GameEngine::getAssets() const { return m_assets; }
 void GameEngine::changeScene(const std::string &a_strSceneName, Scene *a_pScene, bool a_bEndCurrentScene, bool useFade)
 {
+    if (m_pNextScene != nullptr && m_pNextScene != a_pScene)
+    {
+        delete m_pNextScene;
+    }
+
     m_sNextSceneName = a_strSceneName;
     m_pNextScene = a_pScene;
     m_bNextEndCurrent = a_bEndCurrentScene;
+
     if (useFade)
     {
         m_bIsFadingOut = true;
     }
     else
     {
-
         m_fFadeAlpha = 255.0f;
         m_bIsFadingOut = true;
     }

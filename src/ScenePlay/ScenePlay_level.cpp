@@ -388,12 +388,12 @@ void ScenePlay::sysChunkManagement()
         return;
 
     VectorPP playerPos = m_player->getComponent<CompTransform>().vPosition;
-    // Calculate grid coordinates
+    
     float gridX = playerPos.x / 64.0f;
     float gridY = (height() - playerPos.y) / 64.0f;
 
-    int pChunkX = static_cast<int>(gridX) / m_chunkSize;
-    int pChunkY = static_cast<int>(gridY) / m_chunkSize;
+    int pChunkX = static_cast<int>(std::floor(gridX)) / m_chunkSize;
+    int pChunkY = static_cast<int>(std::floor(gridY)) / m_chunkSize;
 
     // Load chunk
     int radius = 1;

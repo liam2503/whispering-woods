@@ -30,6 +30,11 @@ void ScenePlay::sysRender()
     {
         for (Entity *entity : m_entityManager.getEntities())
         {
+            if (!entity->isActive())
+            {
+                continue;
+            }
+
             if (entity->getTag() == "player")
             {
                 auto &st = m_player->getComponent<CompState>();

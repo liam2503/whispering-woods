@@ -267,7 +267,7 @@ void ScenePlay::processCommand(const DialogueCommand &cmd)
                 target->getComponent<CompTransform>().vPosition = newPos;
                 target->getComponent<CompTransform>().vPrevPos = newPos;
             }
-            catch (const std::invalid_argument &e)
+            catch (const std::exception &e)
             {
                 std::cerr << "Command Error: Invalid numeric value for MOVE command.\n";
             }
