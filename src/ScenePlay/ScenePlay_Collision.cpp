@@ -2,6 +2,7 @@
 #include "Components.h"
 #include "GameEngine.h"
 #include "../SceneMenu.h"
+#include "Common.h"
 #include <iostream>
 #include <fstream>
 
@@ -72,7 +73,7 @@ void ScenePlay::sysCollision()
                 std::string tileAnimName = tile->getComponent<CompAnimation>().animation.getName();
                 if (tileAnimName == "LevelGoal" && entity->getTag() == "player" && !m_hasLevelFinished)
                 {
-                    std::ofstream saveFile("save.csv", std::ios::app);
+                    std::ofstream saveFile(getSaveFilePath(), std::ios::app);
                     if (saveFile.is_open())
                     {
                         saveFile << m_strNextLevel << "\n";
@@ -414,7 +415,7 @@ void ScenePlay::sysCollision()
         {
             if (!m_bBoomerangUnlocked)
             {
-                std::ofstream saveFile("save.csv", std::ios::app);
+                std::ofstream saveFile(getSaveFilePath(), std::ios::app);
                 if (saveFile.is_open())
                 {
                     saveFile << "BoomerangUnlocked,1\n";

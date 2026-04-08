@@ -17,7 +17,7 @@ ScenePlay::ScenePlay(GameEngine *gameEngine, const std::string &a_strLevelPath, 
 
 void ScenePlay::init(const std::string &a_strLevelPath)
 {
-    std::ifstream saveFile("save.csv");
+    std::ifstream saveFile(getSaveFilePath());
     if (saveFile.is_open())
     {
         std::string line;

@@ -2,6 +2,7 @@
 #include "GameEngine.h"
 #include "Action.h"
 #include "Components.h"
+#include "Common.h"
 
 void SceneMenu::update()
 {
@@ -97,7 +98,7 @@ void SceneMenu::executeMenuAction(const std::string &action)
     {
         m_pGame->playSound("apply");
 
-        std::ofstream clearFile("save.csv", std::ios::trunc);
+        std::ofstream clearFile(getSaveFilePath(), std::ios::trunc);
         clearFile.close();
 
         m_vecUnlockedLevels.clear();

@@ -4,11 +4,12 @@
 #include <sstream>
 #include <iostream>
 #include <algorithm>
+#include "Common.h"
 
 void SceneMenu::loadSettings()
 {
     m_vecUnlockedLevels.clear();
-    std::ifstream infile("save.csv");
+    std::ifstream infile(getSaveFilePath());
     if (!infile.is_open())
         return;
 
@@ -32,12 +33,10 @@ void SceneMenu::loadSettings()
                 {
                     m_pGame->setSwapABXY(std::stoi(value) != 0);
                 }
-                // Load Keybindings
                 else if (key.find("KEY_") == 0)
                 {
                     m_pGame->setKey(key.substr(4), static_cast<sf::Keyboard::Key>(std::stoi(value)));
                 }
-                // Load Controller Bindings
                 else if (key.find("BTN_") == 0)
                 {
                     m_pGame->setControllerButton(key.substr(4), std::stoi(value));
@@ -68,7 +67,6 @@ void SceneMenu::loadSettings()
         }
         else
         {
-            // Lines without commas are unlocked level paths
             if (!key.empty() && key.find("Assets/Levels") != std::string::npos)
             {
                 key.erase(std::remove(key.begin(), key.end(), '\r'), key.end());
@@ -83,7 +81,7 @@ void SceneMenu::saveSettings()
 {
     bool hasBoomerang = false;
 
-    std::ifstream infile("save.csv");
+    std::ifstream infile(getSaveFilePath());
 
     if (infile.is_open())
     {
@@ -96,7 +94,7 @@ void SceneMenu::saveSettings()
         infile.close();
     }
 
-    std::ofstream outfile("save.csv");
+    std::ofstream outfile(getSaveFilePath());
     if (outfile.is_open())
     {
         if (hasBoomerang)
@@ -108,7 +106,6 @@ void SceneMenu::saveSettings()
         outfile << "JoystickID," << m_pGame->getJoystickID() << "\n";
         outfile << "SwapABXY," << m_pGame->getSwapABXY() << "\n";
 
-        // Save Keys
         outfile << "KEY_MOVE_LEFT," << m_pGame->getKey("MOVE_LEFT") << "\n";
         outfile << "KEY_MOVE_RIGHT," << m_pGame->getKey("MOVE_RIGHT") << "\n";
         outfile << "KEY_JUMP," << m_pGame->getKey("JUMP") << "\n";
@@ -118,7 +115,6 @@ void SceneMenu::saveSettings()
         outfile << "KEY_BOOMERANG," << m_pGame->getKey("BOOMERANG") << "\n";
         outfile << "KEY_MENU," << m_pGame->getKey("MENU") << "\n";
 
-        // Save Controller Buttons
         outfile << "BTN_MELEE," << m_pGame->getControllerButton("MELEE") << "\n";
         outfile << "BTN_BOOMERANG," << m_pGame->getControllerButton("BOOMERANG") << "\n";
         outfile << "BTN_SELECT," << m_pGame->getControllerButton("SELECT") << "\n";
@@ -128,22 +124,15 @@ void SceneMenu::saveSettings()
         auto last = std::unique(m_vecUnlockedLevels.begin(), m_vecUnlockedLevels.end());
         m_vecUnlockedLevels.erase(last, m_vecUnlockedLevels.end());
 
-        // Save Unlocked Levels
         for (const auto &level : m_vecUnlockedLevels)
         {
             outfile << level << "\n";
         }
 
-        // Save Resolution Settings
         outfile << "InternalResX," << m_vecResolutions[m_nSelectedResolution].x << "\n";
         outfile << "InternalResY," << m_vecResolutions[m_nSelectedResolution].y << "\n";
         outfile << "Fullscreen," << m_bSelectedFullscreen << "\n";
 
-        std::cout << "Settings saved to save.csv\n";
-    }
-    else
-    {
-        std::cerr << "Failed to save settings!\n";
     }
 }
 
